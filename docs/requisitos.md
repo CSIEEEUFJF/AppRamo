@@ -2,6 +2,8 @@
 
 Este documento define o escopo mínimo inicial do AppRamo. A referência funcional principal é o aplicativo Android em Jetpack Compose, porque ele contém o conjunto de funções já implementadas e integradas.
 
+Para documentação operacional por área, veja [modulos/README.md](modulos/README.md).
+
 ## Usuários e permissões
 
 - O usuário principal é um membro do Ramo Estudantil IEEE UFJF.
@@ -96,4 +98,3 @@ Este documento define o escopo mínimo inicial do AppRamo. A referência funcion
 - Um membro consegue criar e excluir eventos.
 - A lista de membros reflete atualizações do Firestore sem reiniciar o app.
 - O controle da sala consegue consultar status e enviar comandos quando a chave do relay está configurada.
-

@@ -9,6 +9,8 @@ O AppRamo começa como um monorepo com dois aplicativos nativos:
 
 As duas plataformas devem compartilhar o mesmo modelo de dados no Firebase para usuários, tarefas e eventos.
 
+A documentação detalhada por responsabilidade está em [modulos/README.md](modulos/README.md).
+
 ```mermaid
 flowchart LR
   Android["Android app\nKotlin + Compose"] --> Firebase["Firebase\nAuth, Firestore, Storage"]
@@ -122,3 +124,4 @@ O controle da sala usa um relay HTTP com:
 
 O Android lê `DOOR_RELAY_BASE_URL`, `DOOR_RELAY_API_KEY` e `DOOR_RELAY_DEVICE_ID` de propriedades Gradle. O iOS lê `DoorRelayBaseURL`, `DoorRelayAPIKey` e `DoorRelayDeviceID` do `Info.plist`.
 
+O módulo de controle da sala está detalhado em [modulos/controle-da-sala.md](modulos/controle-da-sala.md), incluindo o contrato esperado pelo app e observações de integração com o projeto IoT do Ramo.

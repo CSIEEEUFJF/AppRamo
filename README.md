@@ -33,6 +33,18 @@ O escopo mínimo do produto é o conjunto de funcionalidades já implementadas n
 
 Veja os detalhes em [docs/requisitos.md](docs/requisitos.md).
 
+## Documentação
+
+A documentação foi organizada no mesmo espírito do projeto IoT do Ramo: visão operacional, módulos, fluxos, modelo de dados, configuração e checklist de validação.
+
+- [Estado atual](docs/estado-atual.md)
+- [Arquitetura](docs/arquitetura.md)
+- [Requisitos](docs/requisitos.md)
+- [Configuração local](docs/configuracao.md)
+- [Roadmap](docs/roadmap.md)
+- [Módulos do sistema](docs/modulos/README.md)
+- [Checklist de validação](docs/checklist-validacao.md)
+
 ## Configuração rápida
 
 As credenciais reais não são versionadas. Antes de executar os apps, configure os arquivos locais:
