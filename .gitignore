@@ -1,0 +1,46 @@
+# Sistema operacional e editores
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Variaveis locais e segredos
+.env
+.env.*
+*.local
+local.properties
+google-services.json
+GoogleService-Info.plist
+
+# Android / Gradle
+.gradle/
+build/
+**/build/
+captures/
+*.apk
+*.aab
+*.ap_
+*.keystore
+*.jks
+
+# Kotlin / Java
+*.class
+*.log
+
+# iOS / Xcode
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.build/
+Packages/
+
+# CocoaPods, caso seja adotado no futuro
+Pods/

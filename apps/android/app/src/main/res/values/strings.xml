@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">RE IEEE UFJF</string>
+    <string name="create_account">Crie sua conta</string>
+    <string name="upload_profile_picture">Selecione uma foto de perfil</string>
+    <string name="nome">Nome</string>
+    <string name="data_de_nascimento">Data de Nascimento</string>
+    <string name="selecione_a_data_de_nascimento">Selecione a data de nascimento</string>
+    <string name="e_mail">E-mail</string>
+    <string name="password">Senha</string>
+    <string name="cargo_no_capitulo">Cargo no capítulo</string>
+    <string name="selecione_seu_capitulo_principal">Selecione seus capítulos</string>
+    <string name="phone_number">Phone Number</string>
+    <string name="register">Register</string>
+    <string name="login">Login</string>
+    <string name="tarefas_do_capitulo">Tarefas do Capítulo</string>
+    <string name="calendario_do_capitulo">Calendário do Capítulo</string>
+    <string name="controle_da_sala">Controle da Sala</string>
+    <string name="membros_do_ramo">Membros do Ramo</string>
+    <string name="logout">Logout</string>
+    <string name="titulo">Título</string>
+    <string name="descricao">Descrição</string>
+    <string name="local">Local</string>
+    <string name="inicio">Início: %s</string>
+    <string name="selecionar_inicio">Selecionar Início</string>
+    <string name="fim">Fim: %s</string>
+    <string name="selecionar_fim">Selecionar Fim</string>
+    <string name="agendar_reuniao">Agendar Reunião</string>
+</resources>
