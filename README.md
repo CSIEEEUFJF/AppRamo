@@ -26,7 +26,7 @@ O escopo mínimo do produto é o conjunto de funcionalidades já implementadas n
 - Listagem de membros do Ramo agrupados por capítulo.
 - Tarefas por capítulo, com criação, conclusão, detalhes e exclusão.
 - Calendário por capítulo, com criação, detalhes, exclusão e integração com a agenda do dispositivo.
-- Controle de sala via relay HTTP para status da porta/luz e envio de comandos.
+- Controle de sala via API HTTP da placa para abertura de porta e modo reunião.
 
 Veja os detalhes em [docs/requisitos.md](docs/requisitos.md).
 
@@ -46,8 +46,8 @@ A documentação foi organizada no mesmo espírito do projeto IoT do Ramo: visã
 
 As credenciais reais não são versionadas. Antes de executar os apps, configure os arquivos locais:
 
-- Android: copie o `google-services.json` do Firebase para `apps/android/app/` e configure `DOOR_RELAY_API_KEY` em `~/.gradle/gradle.properties`, variável de ambiente ou `-P` no Gradle.
-- iOS: copie o `GoogleService-Info.plist` do Firebase para `apps/ios/AppRamoIEEE/` e preencha `DoorRelayAPIKey` no `Info.plist` local ou em uma configuração de build.
+- Android: copie o `google-services.json` do Firebase para `apps/android/app/` e configure `DOOR_API_BASE_URL` e `DOOR_API_KEY` em `~/.gradle/gradle.properties`, variável de ambiente ou `-P` no Gradle.
+- iOS: copie o `GoogleService-Info.plist` do Firebase para `apps/ios/AppRamoIEEE/` e preencha `DoorAPIBaseURL` e `DoorAPIKey` no `Info.plist` local ou em uma configuração de build.
 
 Mais detalhes em [docs/configuracao.md](docs/configuracao.md).
 

@@ -15,9 +15,9 @@ A documentação detalhada por responsabilidade está em [modulos/README.md](mod
 flowchart LR
   Android["Android app\nKotlin + Compose"] --> Firebase["Firebase\nAuth, Firestore, Storage"]
   IOS["iOS app\nSwiftUI"] --> Firebase
-  Android --> Relay["Relay HTTP da sala\n/status e /send"]
+  Android --> Relay["API HTTP da sala\n/api/door e /api/meeting"]
   IOS --> Relay
-  Relay --> ESP["Dispositivo IoT\nporta/luz"]
+  Relay --> ESP["Sistema IoT\nporta e reunião"]
 ```
 
 ## Android
@@ -114,14 +114,16 @@ O Firebase centraliza autenticação, persistência e armazenamento de fotos. Ca
 
 Esses arquivos não devem ser commitados.
 
-### Relay da sala
+### API da sala
 
-O controle da sala usa um relay HTTP com:
+O controle da sala usa a API HTTP exposta pelo sistema da porta com:
 
-- `GET /status?device_id=esp01`
-- `POST /send`
+- `POST /api/door/open`
+- `GET /api/meeting/status`
+- `POST /api/meeting/schedule`
+- `POST /api/meeting/cancel`
 - Header `X-API-KEY`
 
-O Android lê `DOOR_RELAY_BASE_URL`, `DOOR_RELAY_API_KEY` e `DOOR_RELAY_DEVICE_ID` de propriedades Gradle. O iOS lê `DoorRelayBaseURL`, `DoorRelayAPIKey` e `DoorRelayDeviceID` do `Info.plist`.
+O Android lê `DOOR_API_BASE_URL` e `DOOR_API_KEY` de propriedades Gradle. O iOS lê `DoorAPIBaseURL` e `DoorAPIKey` do `Info.plist`. O Android ainda aceita os nomes antigos `DOOR_RELAY_BASE_URL` e `DOOR_RELAY_API_KEY` como fallback.
 
 O módulo de controle da sala está detalhado em [modulos/controle-da-sala.md](modulos/controle-da-sala.md), incluindo o contrato esperado pelo app e observações de integração com o projeto IoT do Ramo.

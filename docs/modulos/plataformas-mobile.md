@@ -20,7 +20,7 @@ Responsabilidades:
 - Inicializar a aplicação Compose.
 - Controlar navegação entre login, cadastro, home, perfil, tarefas, calendário, membros e controle da sala.
 - Consultar Firebase diretamente nos fluxos atuais.
-- Consultar o relay da sala via Ktor.
+- Consultar a API da sala via Ktor.
 
 Dependências principais:
 
@@ -47,7 +47,7 @@ Responsabilidades:
 - Manter o estado global do usuário autenticado.
 - Escutar eventos e tarefas em tempo real.
 - Controlar navegação entre telas SwiftUI.
-- Consultar o relay da sala via `URLSession`.
+- Consultar a API da sala via `URLSession`.
 
 Dependências principais:
 
@@ -69,4 +69,3 @@ Dependências principais:
 - Android: `.\gradlew.bat :app:testDebugUnitTest`.
 - iOS: build do target `AppRamoIEEE` no Xcode.
 - Teste manual dos fluxos principais nas duas plataformas.
-

@@ -12,7 +12,7 @@ flowchart LR
   Members["Membros"] --> Firebase
   Tasks["Tarefas"] --> Firebase
   Calendar["Calendário"] --> Firebase
-  Room["Controle da Sala"] --> Relay["Relay HTTP"]
+  Room["Controle da Sala"] --> Relay["API HTTP da porta"]
   Android["Android"] --> Auth
   Android --> Members
   Android --> Tasks
@@ -42,11 +42,11 @@ flowchart LR
 - Eventos são armazenados em `events/{eventId}`.
 - Fotos de perfil ficam no Firebase Storage.
 - Eventos e tarefas são filtrados por capítulos do usuário e entradas globais.
-- O controle da sala usa um relay HTTP com autenticação por chave.
+- O controle da sala usa a API HTTP da placa com autenticação por chave.
 
 ## Convenções de manutenção
 
 - Android continua sendo a referência mínima de escopo funcional até a paridade iOS ser validada.
 - Qualquer mudança em modelo de dados deve ser refletida nos dois apps.
-- Qualquer mudança no relay da sala deve atualizar Android, iOS e [controle-da-sala.md](controle-da-sala.md).
+- Qualquer mudança na API da sala deve atualizar Android, iOS e [controle-da-sala.md](controle-da-sala.md).
 - Credenciais reais nunca devem ser versionadas.

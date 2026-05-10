@@ -15,7 +15,7 @@ Hoje a base do AppRamo está organizada como um monorepo com:
 - autenticação por Firebase Authentication;
 - dados de usuários, tarefas e eventos no Cloud Firestore;
 - fotos de perfil no Firebase Storage;
-- integração mobile com relay HTTP para porta/luz da sala;
+- integração mobile com API HTTP para porta e modo reunião;
 - documentação inicial separada por módulos.
 
 ## Funcionalidades importadas das bases de referência
@@ -27,14 +27,14 @@ Hoje a base do AppRamo está organizada como um monorepo com:
 - Listagem de membros.
 - Tarefas por capítulo.
 - Calendário por capítulo.
-- Controle de sala por status/comando HTTP.
+- Controle de sala por abertura remota e modo reunião.
 
 ## Características importantes
 
 - Android é a referência mínima de escopo funcional.
 - iOS já contém implementação equivalente para os principais fluxos, mas ainda precisa de validação em Xcode.
 - Credenciais reais do Firebase e chave do relay não são versionadas.
-- O relay da sala é documentado como contrato HTTP independente do app.
+- A API da sala é documentada como contrato HTTP independente do app.
 - O repositório remoto principal é `https://github.com/CSIEEEUFJF/AppRamo.git`.
 
 ## Pontos sensíveis

@@ -29,18 +29,67 @@ struct ChapterTask: Identifiable, Codable {
 }
 
 // IoT
-struct DeviceStatus: Codable {
-    let device_id: String?
-    let door: Int?
-    let light: Int?
-    let last_seen: Int64?
+struct DoorAPIResponse: Codable {
+    let ok: Bool
+    let message: String?
+    let error: String?
 }
 
-struct CommandPayload: Codable {
-    let device_id: String
-    let command: ActionCommand
+struct MeetingSchedulePayload: Codable {
+    let delay_seconds: Int64
+    let profile_indices: [Int]
+    let recurrence: String
+    let weekdays: [Int]?
 }
 
-struct ActionCommand: Codable {
-    let action: String
+struct MeetingCancelPayload: Codable {
+    let id: Int64
+}
+
+struct MeetingScheduleResponse: Codable {
+    let ok: Bool
+    let error: String?
+    let id: Int64?
+    let pending_count: Int?
+    let active: Bool?
+    let time_synced: Bool?
+    let now_unix: Int64?
+    let start_unix: Int64?
+    let delay_seconds: Int64?
+    let profile_count: Int?
+    let recurrence: String?
+    let weekdays_mask: Int?
+}
+
+struct MeetingCancelResponse: Codable {
+    let ok: Bool
+    let error: String?
+    let canceled_count: Int?
+    let pending_count: Int?
+    let active: Bool?
+}
+
+struct MeetingStatusResponse: Codable {
+    let ok: Bool
+    let error: String?
+    let active: Bool?
+    let pending_count: Int?
+    let time_synced: Bool?
+    let now_unix: Int64?
+    let active_selected_profiles: Int?
+    let active_allowed_cards: Int?
+    let last_id: Int64?
+    let last_start_unix: Int64?
+    let last_selected_profiles: Int?
+    let last_allowed_cards: Int?
+    let last_status: String?
+    let schedules: [MeetingScheduleItem]?
+}
+
+struct MeetingScheduleItem: Identifiable, Codable {
+    let id: Int64
+    let start_unix: Int64
+    let profile_count: Int
+    let recurrence: String
+    let weekdays_mask: Int
 }

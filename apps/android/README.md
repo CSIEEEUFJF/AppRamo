@@ -17,12 +17,11 @@ Base importada do projeto `AppRamoIEEEUFJF_Android`, com ajustes iniciais para u
 ## Configuração
 
 1. Adicione `app/google-services.json`.
-2. Configure as propriedades locais do relay:
+2. Configure as propriedades locais da API da placa:
 
 ```properties
-DOOR_RELAY_BASE_URL=https://ramoieeeufjf.dpdns.org
-DOOR_RELAY_API_KEY=preencher-localmente
-DOOR_RELAY_DEVICE_ID=esp01
+DOOR_API_BASE_URL=https://ramoieeeufjf.dpdns.org
+DOOR_API_KEY=preencher-localmente
 ```
 
 Essas propriedades podem ficar em `~/.gradle/gradle.properties`, variáveis de ambiente ou parâmetros `-P` do Gradle.

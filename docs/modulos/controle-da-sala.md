@@ -2,9 +2,9 @@
 
 ## Objetivo
 
-Permitir que o app consulte o estado da sala e envie comandos para porta e luz.
+Permitir que o app abra a porta remotamente e gerencie o modo reunião implementado no sistema da porta.
 
-Este módulo é o ponto de contato entre o AppRamo e a infraestrutura IoT. A documentação foi escrita considerando o projeto [`IoT_Ramo_Renesas`](https://github.com/CSIEEEUFJF/IoT_Ramo_Renesas) como referência operacional para controle físico de acesso, interface local, rede e estado da porta/luz.
+Este módulo é o ponto de contato entre o AppRamo e a infraestrutura IoT. A implementação atual foi baseada no repositório local `C:\Users\CS\Documents\IoT_Ramo_Renesas`, que expõe a nova API HTTP da placa.
 
 ## Arquivos principais
 
@@ -16,14 +16,35 @@ Android:
 iOS:
 
 - [DoorControlView.swift](../../apps/ios/AppRamoIEEE/DoorControlView.swift)
+- [Models.swift](../../apps/ios/AppRamoIEEE/Models.swift)
 - [Info.plist](../../apps/ios/AppRamoIEEE/Info.plist)
 
 ## Contrato HTTP usado pelo AppRamo
 
-Status:
+Todas as rotas usam:
+
+- `X-API-KEY: <chave>`
+- ou `Authorization: Bearer <chave>`, no firmware
+
+O app usa `X-API-KEY`.
+
+### Abrir porta
 
 ```http
-GET /status?device_id=esp01
+POST /api/door/open
+X-API-KEY: <chave>
+```
+
+Resposta de sucesso:
+
+```json
+{"ok":true,"message":"Door open command sent."}
+```
+
+### Consultar modo reunião
+
+```http
+GET /api/meeting/status
 X-API-KEY: <chave>
 ```
 
@@ -31,111 +52,153 @@ Resposta esperada:
 
 ```json
 {
-  "device_id": "esp01",
-  "door": 1,
-  "light": 0,
-  "last_seen": 1710000000
+  "ok": true,
+  "active": false,
+  "pending_count": 1,
+  "time_synced": true,
+  "now_unix": 1893455700,
+  "active_selected_profiles": 0,
+  "active_allowed_cards": 0,
+  "last_id": 3,
+  "last_start_unix": 1893456000,
+  "last_selected_profiles": 0,
+  "last_allowed_cards": 0,
+  "last_status": "scheduled",
+  "schedules": [
+    {
+      "id": 3,
+      "start_unix": 1893456000,
+      "profile_count": 2,
+      "recurrence": "none",
+      "weekdays_mask": 0
+    }
+  ]
 }
 ```
 
-Comando:
+### Agendar modo reunião
 
 ```http
-POST /send
+POST /api/meeting/schedule
 Content-Type: application/json
 X-API-KEY: <chave>
 ```
 
-Corpo:
+Agendamento relativo:
 
 ```json
 {
-  "device_id": "esp01",
-  "command": {
-    "action": "door_on"
-  }
+  "delay_seconds": 300,
+  "profile_indices": [0, 4, 12],
+  "recurrence": "none"
 }
 ```
 
-## Comandos mínimos
+Agendamento diário:
 
-- `door_on`: abre a porta.
-- `door_off`: fecha a porta, se suportado pelo relay/dispositivo.
-- `light_on`: liga a luz.
-- `light_off`: desliga a luz.
+```json
+{
+  "delay_seconds": 300,
+  "profile_indices": [0, 4, 12],
+  "recurrence": "daily"
+}
+```
 
-## Estados exibidos
+Agendamento semanal:
 
-Porta:
+```json
+{
+  "delay_seconds": 300,
+  "profile_indices": [0, 4, 12],
+  "recurrence": "weekly",
+  "weekdays": [1, 3, 5]
+}
+```
 
-- `1`: `Aberta`.
-- `0`: `Fechada`.
-- ausente/desconhecido: `Desconhecida`.
+Observações:
 
-Luz:
+- `profile_indices` usa os índices dos perfis cadastrados na placa, não os IDs do Firebase.
+- `delay_seconds` precisa ficar entre 1 segundo e 24 horas.
+- A placa precisa estar com horário sincronizado para converter atraso em `start_unix`.
+- Se `recurrence` for `weekly` e `weekdays` não for enviado, a placa usa o dia de `start_unix`.
 
-- `1`: `Ligada`.
-- `0`: `Desligada`.
-- ausente/desconhecido: `Desconhecida`.
+### Cancelar modo reunião
+
+Cancelar por ID:
+
+```http
+POST /api/meeting/cancel
+Content-Type: application/json
+X-API-KEY: <chave>
+```
+
+```json
+{"id":3}
+```
+
+Cancelar todos:
+
+```http
+POST /api/meeting/cancel
+X-API-KEY: <chave>
+```
+
+Sem corpo.
 
 ## Configuração
 
 Android:
 
+- `DOOR_API_BASE_URL`
+- `DOOR_API_KEY`
+
+Fallbacks aceitos no Android:
+
 - `DOOR_RELAY_BASE_URL`
 - `DOOR_RELAY_API_KEY`
-- `DOOR_RELAY_DEVICE_ID`
 
 iOS:
 
+- `DoorAPIBaseURL`
+- `DoorAPIKey`
+
+Fallbacks aceitos no iOS:
+
 - `DoorRelayBaseURL`
 - `DoorRelayAPIKey`
-- `DoorRelayDeviceID`
 
 As chaves reais não devem ser commitadas.
-
-## Relação com `IoT_Ramo_Renesas`
-
-O projeto IoT de referência documenta:
-
-- controle físico de porta e luz;
-- interface local com display/touch;
-- autenticação por RFID;
-- painel web administrativo;
-- rede em modo HTTP;
-- logs de acesso e persistência local.
-
-O AppRamo, por enquanto, não fala diretamente com o firmware Renesas documentado. Ele espera um relay HTTP com `/status` e `/send`.
-
-Para integração direta com o `IoT_Ramo_Renesas`, há duas opções:
-
-- adaptar o firmware/servidor embarcado para expor o contrato `/status` e `/send`;
-- manter um serviço intermediário que traduza o contrato mobile para as rotas atuais do firmware, como `/door`, `/portaon` e `/lampadatoggle`.
 
 ## Fluxo principal
 
 1. Usuário abre a tela de controle da sala.
-2. App consulta `/status`.
-3. App exibe estado de porta e luz.
-4. Usuário aciona porta ou luz.
-5. App envia `/send`.
-6. App faz atualização otimista.
-7. App consulta `/status` novamente para obter o estado real.
+2. App consulta `GET /api/meeting/status`.
+3. App exibe estado do modo reunião e agendamentos pendentes.
+4. Usuário pode abrir a porta via `POST /api/door/open`.
+5. Usuário pode agendar modo reunião por atraso em minutos.
+6. Usuário pode cancelar um agendamento por ID ou cancelar todos.
+
+## O que não faz parte deste app
+
+- Fechamento manual da porta.
+- Cadastro de perfis da placa.
+- Mapeamento automático entre usuário Firebase e índice do perfil na placa.
 
 ## Pontos sensíveis
 
-- A chave de API atual é uma credencial compartilhada; idealmente deve ser substituída por autorização por usuário.
-- O endpoint precisa responder rápido para não travar a experiência mobile.
-- Erros de rede devem aparecer na tela.
-- A semântica de `door_off` deve ser confirmada, porque o projeto IoT registra principalmente abertura de porta.
-- Logs de abertura/acionamento devem ser definidos no lado IoT ou relay.
+- `profile_indices` depende da ordem/cadastro local da placa.
+- O app não deve expor a chave da API em commits.
+- Agendamento por atraso depende do NTP da placa.
+- O limite do firmware é de até 8 agendamentos pendentes.
+- Agendamentos recorrentes mantêm o mesmo ID e avançam para a próxima ocorrência.
 
 ## Validação mínima
 
-- Consultar status com chave válida.
+- Abrir porta com chave válida.
 - Validar erro com chave inválida.
-- Acionar `door_on`.
-- Alternar luz com `light_on` e `light_off`.
-- Confirmar que o estado real retorna corretamente após comando.
-- Confirmar que nenhum segredo aparece no Git.
-
+- Consultar status do modo reunião.
+- Agendar reunião única.
+- Agendar reunião diária.
+- Agendar reunião semanal.
+- Cancelar reunião por ID.
+- Cancelar todos os agendamentos.

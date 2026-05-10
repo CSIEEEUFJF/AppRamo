@@ -12,7 +12,7 @@ Este checklist cobre a primeira rodada de validação manual e técnica do AppRa
 ## Android
 
 - Adicionar `apps/android/app/google-services.json`.
-- Configurar `DOOR_RELAY_API_KEY`.
+- Configurar `DOOR_API_BASE_URL` e `DOOR_API_KEY`.
 - Rodar `.\gradlew.bat :app:assembleDebug`.
 - Rodar `.\gradlew.bat :app:testDebugUnitTest`.
 - Instalar o app em emulador ou dispositivo.
@@ -21,7 +21,7 @@ Este checklist cobre a primeira rodada de validação manual e técnica do AppRa
 ## iOS
 
 - Adicionar `apps/ios/AppRamoIEEE/GoogleService-Info.plist`.
-- Configurar `DoorRelayAPIKey`.
+- Configurar `DoorAPIBaseURL` e `DoorAPIKey`.
 - Resolver Swift Packages no Xcode.
 - Compilar o target `AppRamoIEEE`.
 - Validar login, cadastro, perfil, tarefas, calendário, membros e controle da sala.
@@ -38,10 +38,11 @@ Este checklist cobre a primeira rodada de validação manual e técnica do AppRa
 
 ## Controle da sala
 
-- Confirmar `GET /status?device_id=...`.
-- Confirmar `POST /send` com `door_on`.
-- Confirmar `POST /send` com `light_on`.
-- Confirmar `POST /send` com `light_off`.
+- Confirmar `POST /api/door/open`.
+- Confirmar `GET /api/meeting/status`.
+- Confirmar `POST /api/meeting/schedule` com `delay_seconds` e `profile_indices`.
+- Confirmar `POST /api/meeting/cancel` com ID.
+- Confirmar `POST /api/meeting/cancel` sem ID para cancelar todos.
 - Validar mensagem de erro sem conexão ou sem chave.
 - Validar que a chave de API não aparece em logs ou commits.
 
@@ -52,4 +53,3 @@ Este checklist cobre a primeira rodada de validação manual e técnica do AppRa
 - Fluxos principais funcionam nas duas plataformas.
 - Regras de segurança mínimas do Firebase estão aplicadas.
 - A documentação de módulos reflete o estado real do código.
-

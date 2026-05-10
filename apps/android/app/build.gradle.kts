@@ -15,15 +15,16 @@ android {
         version = release(36)
     }
 
-    val doorRelayBaseUrl = providers.gradleProperty("DOOR_RELAY_BASE_URL")
+    val doorApiBaseUrl = providers.gradleProperty("DOOR_API_BASE_URL")
+        .orElse(providers.environmentVariable("DOOR_API_BASE_URL"))
+        .orElse(providers.gradleProperty("DOOR_RELAY_BASE_URL"))
         .orElse(providers.environmentVariable("DOOR_RELAY_BASE_URL"))
         .orElse("https://ramoieeeufjf.dpdns.org")
-    val doorRelayApiKey = providers.gradleProperty("DOOR_RELAY_API_KEY")
+    val doorApiKey = providers.gradleProperty("DOOR_API_KEY")
+        .orElse(providers.environmentVariable("DOOR_API_KEY"))
+        .orElse(providers.gradleProperty("DOOR_RELAY_API_KEY"))
         .orElse(providers.environmentVariable("DOOR_RELAY_API_KEY"))
         .orElse("")
-    val doorRelayDeviceId = providers.gradleProperty("DOOR_RELAY_DEVICE_ID")
-        .orElse(providers.environmentVariable("DOOR_RELAY_DEVICE_ID"))
-        .orElse("esp01")
     fun String.asBuildConfigString(): String = "\"${replace("\\", "\\\\").replace("\"", "\\\"")}\""
 
     defaultConfig {
@@ -34,9 +35,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "DOOR_RELAY_BASE_URL", doorRelayBaseUrl.get().asBuildConfigString())
-        buildConfigField("String", "DOOR_RELAY_API_KEY", doorRelayApiKey.get().asBuildConfigString())
-        buildConfigField("String", "DOOR_RELAY_DEVICE_ID", doorRelayDeviceId.get().asBuildConfigString())
+        buildConfigField("String", "DOOR_API_BASE_URL", doorApiBaseUrl.get().asBuildConfigString())
+        buildConfigField("String", "DOOR_API_KEY", doorApiKey.get().asBuildConfigString())
     }
 
     buildTypes {

@@ -11,12 +11,11 @@ Pré-requisitos:
 Passos:
 
 1. Copie o arquivo Firebase `google-services.json` para `apps/android/app/google-services.json`.
-2. Configure as chaves do relay em `~/.gradle/gradle.properties`, variáveis de ambiente ou parâmetros `-P` do Gradle:
+2. Configure as chaves da API da placa em `~/.gradle/gradle.properties`, variáveis de ambiente ou parâmetros `-P` do Gradle:
 
 ```properties
-DOOR_RELAY_BASE_URL=https://ramoieeeufjf.dpdns.org
-DOOR_RELAY_API_KEY=preencher-localmente
-DOOR_RELAY_DEVICE_ID=esp01
+DOOR_API_BASE_URL=https://ramoieeeufjf.dpdns.org
+DOOR_API_KEY=preencher-localmente
 ```
 
 3. Execute:
@@ -40,7 +39,7 @@ Passos:
 1. Copie o arquivo Firebase `GoogleService-Info.plist` para `apps/ios/AppRamoIEEE/GoogleService-Info.plist`.
 2. Abra `apps/ios/AppRamoIEEE.xcodeproj` no Xcode.
 3. Resolva os pacotes Swift quando o Xcode solicitar.
-4. Preencha `DoorRelayAPIKey` no `Info.plist` local ou configure essa chave via build settings.
+4. Preencha `DoorAPIBaseURL` e `DoorAPIKey` no `Info.plist` local ou configure essas chaves via build settings.
 
 ## Firebase
 

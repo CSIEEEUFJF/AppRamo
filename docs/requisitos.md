@@ -72,13 +72,13 @@ Para documentação operacional por área, veja [modulos/README.md](modulos/READ
 
 ### Controle da sala
 
-- Consultar status de porta e luz em um relay HTTP usando `GET /status?device_id=...`.
-- Enviar comandos usando `POST /send` com o header `X-API-KEY`.
-- Suportar os comandos mínimos `door_on`, `light_on` e `light_off`.
-- Exibir status de porta como `Aberta`, `Fechada` ou `Desconhecida`.
-- Exibir status de luz como `Ligada`, `Desligada` ou `Desconhecida`.
+- Abrir a porta usando `POST /api/door/open` com o header `X-API-KEY`.
+- Consultar o modo reunião usando `GET /api/meeting/status`.
+- Agendar modo reunião usando `POST /api/meeting/schedule`.
+- Cancelar agendamentos de reunião usando `POST /api/meeting/cancel`.
+- Exibir estado ativo/inativo do modo reunião.
+- Exibir agendamentos pendentes e último status informado pela placa.
 - Exibir estado de carregamento e mensagens de erro.
-- Permitir atualização manual do status.
 
 ## Requisitos técnicos mínimos
 
@@ -97,4 +97,4 @@ Para documentação operacional por área, veja [modulos/README.md](modulos/READ
 - Um membro consegue criar, concluir e excluir tarefas.
 - Um membro consegue criar e excluir eventos.
 - A lista de membros reflete atualizações do Firestore sem reiniciar o app.
-- O controle da sala consegue consultar status e enviar comandos quando a chave do relay está configurada.
+- O controle da sala consegue abrir a porta e gerenciar agendamentos de reunião quando a chave da API está configurada.
