@@ -78,7 +78,9 @@ flowchart LR
   },
   "requestedChapterRoles": {
     "RAS": "Membro"
-  }
+  },
+  "doorProfileIndex": 7,
+  "doorProfileName": "Nome no sistema da porta"
 }
 ```
 
@@ -93,6 +95,23 @@ flowchart LR
   }
 }
 ```
+
+### `doorProfiles/{uid}`
+
+```json
+{
+  "firebaseUid": "uid-do-firebase",
+  "name": "Nome do membro",
+  "doorProfileIndex": 7,
+  "doorProfileName": "Nome no sistema da porta",
+  "chapter": "CS",
+  "role": "Membro",
+  "cardCount": 1,
+  "doorSource": "192.168.11.2"
+}
+```
+
+Essa coleção é escrita por ferramenta administrativa e lida pelos apps para montar `profile_indices` no modo reunião sem expor cartões RFID completos.
 
 ### `tasks/{taskId}`
 
@@ -141,4 +160,4 @@ O controle da sala usa a API HTTP exposta pelo sistema da porta com:
 
 O Android lê `DOOR_API_BASE_URL` e `DOOR_API_KEY` de propriedades Gradle. O iOS lê `DoorAPIBaseURL` e `DoorAPIKey` do `Info.plist`. Quando a chave está vazia, os apps enviam Firebase ID Token para uma API intermediária. O Android ainda aceita os nomes antigos `DOOR_RELAY_BASE_URL` e `DOOR_RELAY_API_KEY` como fallback.
 
-O módulo de controle da sala está detalhado em [modulos/controle-da-sala.md](modulos/controle-da-sala.md), incluindo o contrato esperado pelo app e observações de integração com o projeto IoT do Ramo.
+O módulo de controle da sala está detalhado em [modulos/controle-da-sala.md](modulos/controle-da-sala.md), incluindo o contrato esperado pelo app e observações de integração com o projeto IoT do Ramo. O vínculo entre perfis da porta e Firebase está em [modulos/integração porta-Firebase](modulos/integracao-porta-firebase.md).

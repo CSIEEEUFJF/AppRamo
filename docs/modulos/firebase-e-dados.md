@@ -48,6 +48,29 @@ Campos mínimos:
 - `profilePictureUrl`
 - `chapterRoles`
 
+### `doorProfiles`
+
+Documento: `doorProfiles/{uid}`
+
+Responsabilidade:
+
+- relacionar o usuário Firebase com o índice do perfil no sistema da porta;
+- permitir seleção por nome no modo reunião;
+- expor apenas dados operacionais sem UID completo de cartão.
+
+Campos mínimos:
+
+- `firebaseUid`
+- `name`
+- `doorProfileIndex`
+- `doorProfileName`
+- `chapter`
+- `role`
+- `cardCount`
+- `doorSource`
+
+Somente ferramenta administrativa com Firebase Admin SDK deve gravar essa coleção. Os apps apenas leem.
+
 ### `tasks`
 
 Documento: `tasks/{taskId}`
@@ -113,6 +136,8 @@ Diretriz mínima:
 - somente usuários autenticados podem ler dados necessários ao app;
 - usuário só pode editar seu próprio perfil privado;
 - usuário não pode alterar `chapterRoles` pelo app cliente;
+- usuário não pode alterar campos `door*` pelo app cliente;
+- usuários autenticados podem ler `doorProfiles`, mas clientes não podem gravar vínculos da porta;
 - criação/edição/exclusão de tarefas e eventos deve depender de cargo ou capítulo;
 - fotos devem ser gravadas apenas pelo próprio usuário ou por administradores.
 
@@ -122,11 +147,13 @@ Diretriz mínima:
 - Dados globais usam a convenção única `Todos`.
 - Regras de segurança precisam acompanhar o modelo de cargo.
 - Migrações de campos devem ser compatíveis com Android e iOS ao mesmo tempo.
+- `doorProfiles` não deve armazenar UIDs RFID completos; use apenas contagem de cartões e índice do perfil da placa.
 
 ## Validação mínima
 
 - Criar usuário e confirmar `users/{uid}`.
 - Fazer upload de foto e confirmar leitura nas duas plataformas.
+- Rodar a sincronização porta-Firebase e confirmar leitura de `doorProfiles`.
 - Criar tarefa e evento por capítulo.
 - Criar tarefa e evento global.
 - Confirmar índices exigidos pelo Firestore.

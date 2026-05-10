@@ -28,6 +28,10 @@ captures/
 *.class
 *.log
 
+# Python
+__pycache__/
+*.py[cod]
+
 # iOS / Xcode
 DerivedData/
 *.xcuserstate

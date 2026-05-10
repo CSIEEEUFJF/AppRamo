@@ -53,6 +53,7 @@ Coleções mínimas:
 
 - `users`
 - `publicProfiles`
+- `doorProfiles`
 - `tasks`
 - `events`
 
@@ -66,6 +67,24 @@ As regras versionadas em `firestore.rules` e `storage.rules` devem ser publicada
 ```powershell
 firebase deploy --only firestore:rules,storage
 ```
+
+## Integração porta-Firebase
+
+O vínculo entre usuários Firebase e perfis do sistema da porta é executado fora do app, com service account do Firebase:
+
+```powershell
+python -m pip install firebase-admin
+$env:DOOR_ADMIN_PIN = "<PIN_ADMIN>"
+python tools/sync_door_firebase_users.py --door-url http://192.168.11.2 --service-account C:\caminho\service-account.json
+```
+
+Revise o relatório em `build/door/door-firebase-link-report.json` e publique os vínculos somente depois:
+
+```powershell
+python tools/sync_door_firebase_users.py --door-url http://192.168.11.2 --service-account C:\caminho\service-account.json --apply-firebase
+```
+
+Não versionar o PIN, a service account ou exports reais da placa.
 
 ## Observações de migração
 

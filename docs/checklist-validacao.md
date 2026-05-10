@@ -32,6 +32,8 @@ Este checklist cobre a primeira rodada de validação manual e técnica do AppRa
 - Criar usuário de teste.
 - Confirmar escrita e leitura em `users`.
 - Confirmar escrita e leitura sanitizada em `publicProfiles`.
+- Rodar o relatório da sincronização porta-Firebase e revisar `build/door/door-firebase-link-report.json`.
+- Confirmar leitura de `doorProfiles` por usuário autenticado.
 - Confirmar escrita e leitura em `tasks`.
 - Confirmar escrita e leitura em `events`.
 - Confirmar upload e leitura de imagem no Storage.
@@ -43,6 +45,7 @@ Este checklist cobre a primeira rodada de validação manual e técnica do AppRa
 - Confirmar `POST /api/door/open`.
 - Confirmar `GET /api/meeting/status`.
 - Confirmar `POST /api/meeting/schedule` com `delay_seconds` e `profile_indices`.
+- Confirmar agendamento do modo reunião selecionando perfis vinculados do Firebase.
 - Confirmar `POST /api/meeting/cancel` com ID.
 - Confirmar `POST /api/meeting/cancel` sem ID para cancelar todos.
 - Validar mensagem de erro sem conexão, sem chave ou sem token autenticado.

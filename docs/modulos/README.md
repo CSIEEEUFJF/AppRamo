@@ -13,6 +13,8 @@ flowchart LR
   Tasks["Tarefas"] --> Firebase
   Calendar["Calendário"] --> Firebase
   Room["Controle da Sala"] --> Relay["API HTTP da porta"]
+  Room --> DoorProfiles["doorProfiles"]
+  DoorProfiles --> Firebase
   Android["Android"] --> Auth
   Android --> Members
   Android --> Tasks
@@ -33,6 +35,7 @@ flowchart LR
 - [Tarefas do capítulo](tarefas.md)
 - [Calendário do capítulo](calendario.md)
 - [Controle da sala](controle-da-sala.md)
+- [Integração porta-Firebase](integracao-porta-firebase.md)
 - [Firebase e dados compartilhados](firebase-e-dados.md)
 
 ## Contratos compartilhados
@@ -40,9 +43,10 @@ flowchart LR
 - Usuários são armazenados em `users/{uid}`.
 - Tarefas são armazenadas em `tasks/{taskId}`.
 - Eventos são armazenados em `events/{eventId}`.
+- Perfis da porta vinculados ao Firebase são expostos em `doorProfiles/{uid}` sem UID RFID completo.
 - Fotos de perfil ficam no Firebase Storage.
 - Eventos e tarefas são filtrados por capítulos do usuário e entradas globais.
-- O controle da sala usa a API HTTP da placa com autenticação por chave.
+- O controle da sala usa a API HTTP da placa com autenticação por chave ou token Firebase via intermediário.
 
 ## Convenções de manutenção
 

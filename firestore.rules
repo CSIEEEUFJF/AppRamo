@@ -103,10 +103,22 @@ service cloud.firestore {
         && request.auth.uid == userId
         && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
           "chapterRoles",
-          "isAdmin"
+          "isAdmin",
+          "doorProfileIndex",
+          "doorProfileName",
+          "doorChapter",
+          "doorRole",
+          "doorCardCount",
+          "doorLinkedAt",
+          "doorSource"
         ]);
 
       allow delete: if false;
+    }
+
+    match /doorProfiles/{userId} {
+      allow read: if signedIn();
+      allow write: if false;
     }
 
     match /publicProfiles/{userId} {

@@ -54,6 +54,7 @@ fun RegistrationPage(
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var existingProfilePictureUrl by remember { mutableStateOf<String?>(null) }
     var approvedChapterRoles by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    var isResettingPassword by remember { mutableStateOf(false) }
 
     // Solicitações do usuário. Permissões efetivas continuam em chapterRoles e devem ser aprovadas fora do app.
     var chapterRoles by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
@@ -96,7 +97,10 @@ fun RegistrationPage(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text(stringResource(id = R.string.create_account), style = MaterialTheme.typography.headlineMedium)
+        Text(
+            if (currentUser != null) "Editar perfil" else stringResource(id = R.string.create_account),
+            style = MaterialTheme.typography.headlineMedium
+        )
         Spacer(modifier = Modifier.height(16.dp))
 
         Box(modifier = Modifier.clickable { imagePickerLauncher.launch("image/*") }) {
@@ -124,7 +128,29 @@ fun RegistrationPage(
         }
 
         OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text(stringResource(id = R.string.e_mail)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email), modifier = Modifier.fillMaxWidth(), enabled = currentUser == null)
-        OutlinedTextField(value = password,onValueChange = { password = it },label = { Text(stringResource(id = R.string.password)) },visualTransformation = PasswordVisualTransformation(),keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),modifier = Modifier.fillMaxWidth(),enabled = currentUser == null)
+        if (currentUser == null) {
+            OutlinedTextField(value = password,onValueChange = { password = it },label = { Text(stringResource(id = R.string.password)) },visualTransformation = PasswordVisualTransformation(),keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),modifier = Modifier.fillMaxWidth())
+        } else {
+            OutlinedButton(
+                onClick = {
+                    coroutineScope.launch {
+                        try {
+                            isResettingPassword = true
+                            auth.sendPasswordResetEmail(email).await()
+                            Toast.makeText(context, "E-mail de redefinição enviado para $email.", Toast.LENGTH_LONG).show()
+                        } catch (e: Exception) {
+                            Toast.makeText(context, "Falha ao enviar redefinição: ${e.message}", Toast.LENGTH_LONG).show()
+                        } finally {
+                            isResettingPassword = false
+                        }
+                    }
+                },
+                enabled = !isResettingPassword && email.isNotBlank(),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(if (isResettingPassword) "Enviando..." else "Enviar e-mail para redefinir senha")
+            }
+        }
 
         ChapterSelection(allChapters, chapterRoles) { newRoles -> chapterRoles = newRoles }
 
@@ -172,7 +198,7 @@ fun RegistrationPage(
                 }
             }
         }) {
-            Text(if (currentUser != null) "Update" else stringResource(id = R.string.register))
+            Text(if (currentUser != null) "Salvar alterações" else stringResource(id = R.string.register))
         }
     }
 }

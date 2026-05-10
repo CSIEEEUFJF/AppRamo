@@ -95,3 +95,29 @@ struct MeetingScheduleItem: Identifiable, Codable {
     let recurrence: String
     let weekdays_mask: Int
 }
+
+struct DoorAccessProfile: Identifiable, Codable {
+    @DocumentID var id: String?
+    var firebaseUid: String?
+    var name: String?
+    var chapter: String?
+    var role: String?
+    var doorProfileIndex: Int?
+    var cardCount: Int?
+
+    var stableId: String {
+        id ?? firebaseUid ?? "\(doorProfileIndex ?? -1):\(name ?? "")"
+    }
+
+    var displayName: String {
+        let trimmed = (name ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? "Perfil \(doorProfileIndex ?? -1)" : trimmed
+    }
+
+    var chapterRoleLabel: String {
+        let values = [chapter, role]
+            .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        return values.isEmpty ? "Sem capítulo" : values.joined(separator: " · ")
+    }
+}

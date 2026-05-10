@@ -76,6 +76,7 @@ Para documentação operacional por área, veja [modulos/README.md](modulos/READ
 - Abrir a porta usando `POST /api/door/open` com `X-API-KEY` local ou `Authorization: Bearer <Firebase ID Token>`.
 - Consultar o modo reunião usando `GET /api/meeting/status`.
 - Agendar modo reunião usando `POST /api/meeting/schedule`.
+- Selecionar membros vinculados em `doorProfiles` para montar os índices de perfis da placa.
 - Cancelar agendamentos de reunião usando `POST /api/meeting/cancel`.
 - Exibir estado ativo/inativo do modo reunião.
 - Exibir agendamentos pendentes e último status informado pela placa.
@@ -88,6 +89,7 @@ Para documentação operacional por área, veja [modulos/README.md](modulos/READ
 - Interface Android em Jetpack Compose e Material 3.
 - Navegação Android com Navigation Compose.
 - Firebase Authentication, Firestore e Storage.
+- Script administrativo para sincronizar perfis da porta com `doorProfiles`.
 - Ktor Client no Android para o relay da sala.
 - iOS nativo em SwiftUI com Firebase iOS SDK.
 - Credenciais e chaves fora do controle de versão.

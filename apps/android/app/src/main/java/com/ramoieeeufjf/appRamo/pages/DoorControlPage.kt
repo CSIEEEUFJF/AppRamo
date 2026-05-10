@@ -1,6 +1,7 @@
 package com.ramoieeeufjf.appRamo.pages
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -35,6 +37,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.ramoieeeufjf.appRamo.BuildConfig
 import com.ramoieeeufjf.appRamo.R
 import io.ktor.client.HttpClient
@@ -132,15 +135,28 @@ private data class MeetingScheduleItem(
     @SerialName("weekdays_mask") val weekdaysMask: Int = 0
 )
 
+private data class DoorAccessProfile(
+    val firebaseUid: String = "",
+    val name: String = "",
+    val chapter: String = "",
+    val role: String = "",
+    val doorProfileIndex: Int = -1,
+    val cardCount: Int = 0
+)
+
 @Composable
 fun DoorControlPage() {
     var meetingStatus by remember { mutableStateOf<MeetingStatusResponse?>(null) }
+    var doorProfiles by remember { mutableStateOf<List<DoorAccessProfile>>(emptyList()) }
+    var selectedDoorProfileIds by remember { mutableStateOf<Set<String>>(emptySet()) }
     var delayMinutes by remember { mutableStateOf("5") }
     var profileIndices by remember { mutableStateOf("") }
     var recurrence by remember { mutableStateOf("none") }
     var weekdays by remember { mutableStateOf("") }
     var cancelId by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
+    var profilesLoading by remember { mutableStateOf(true) }
+    var profilesError by remember { mutableStateOf<String?>(null) }
     var errorMsg by remember { mutableStateOf<String?>(null) }
     var successMsg by remember { mutableStateOf<String?>(null) }
 
@@ -225,7 +241,8 @@ fun DoorControlPage() {
 
                 val request = MeetingScheduleRequest(
                     delaySeconds = minutes * 60,
-                    profileIndices = DoorInputParser.parseProfileIndices(profileIndices),
+                    profileIndices = selectedDoorIndices(doorProfiles, selectedDoorProfileIds)
+                        .ifEmpty { DoorInputParser.parseProfileIndices(profileIndices) },
                     recurrence = recurrence,
                     weekdays = if (recurrence == "weekly") DoorInputParser.parseWeekdays(weekdays) else null
                 )
@@ -292,7 +309,30 @@ fun DoorControlPage() {
     }
 
     DisposableEffect(Unit) {
+        val listener = FirebaseFirestore.getInstance()
+            .collection("doorProfiles")
+            .orderBy("name")
+            .addSnapshotListener { snapshot, e ->
+                profilesLoading = false
+                if (e != null) {
+                    profilesError = e.message
+                    return@addSnapshotListener
+                }
+
+                profilesError = null
+                val loadedProfiles = snapshot?.documents.orEmpty().mapNotNull { doc ->
+                    doc.toObject(DoorAccessProfile::class.java)?.copy(
+                        firebaseUid = doc.getString("firebaseUid").orEmpty().ifBlank { doc.id }
+                    )
+                }.filter { it.doorProfileIndex >= 0 }
+
+                doorProfiles = loadedProfiles
+                val availableIds = loadedProfiles.map { it.stableId() }.toSet()
+                selectedDoorProfileIds = selectedDoorProfileIds.intersect(availableIds)
+            }
+
         onDispose {
+            listener.remove()
             client.close()
         }
     }
@@ -306,9 +346,9 @@ fun DoorControlPage() {
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Image(
-            painter = painterResource(id = R.drawable.rasieee),
-            contentDescription = "RAS Logo",
-            modifier = Modifier.size(72.dp)
+            painter = painterResource(id = R.drawable.cslogo),
+            contentDescription = "CS Logo",
+            modifier = Modifier.size(96.dp)
         )
 
         Text("Controle da sala", style = MaterialTheme.typography.headlineSmall)
@@ -340,9 +380,17 @@ fun DoorControlPage() {
                 OutlinedTextField(
                     value = profileIndices,
                     onValueChange = { profileIndices = it },
-                    label = { Text("Índices dos perfis") },
+                    label = { Text(if (selectedDoorProfileIds.isEmpty()) "Índices dos perfis" else "Índices manuais opcionais") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
+                )
+
+                DoorProfilesSelector(
+                    profiles = doorProfiles,
+                    selectedIds = selectedDoorProfileIds,
+                    loading = profilesLoading,
+                    error = profilesError,
+                    onSelectionChange = { selectedDoorProfileIds = it }
                 )
 
                 RecurrenceSelector(recurrence = recurrence, onChange = { recurrence = it })
@@ -377,6 +425,58 @@ fun DoorControlPage() {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                     Button(onClick = { cancelMeeting() }, enabled = !loading, modifier = Modifier.weight(1f)) {
                         Text(if (cancelId.isBlank()) "Cancelar todos" else "Cancelar ID")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DoorProfilesSelector(
+    profiles: List<DoorAccessProfile>,
+    selectedIds: Set<String>,
+    loading: Boolean,
+    error: String?,
+    onSelectionChange: (Set<String>) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+        Text("Perfis vinculados ao Firebase", style = MaterialTheme.typography.labelLarge)
+
+        when {
+            loading -> Text("Carregando perfis vinculados...", style = MaterialTheme.typography.bodySmall)
+            error != null -> Text("Falha ao carregar vínculos: $error", color = MaterialTheme.colorScheme.error)
+            profiles.isEmpty() -> Text("Nenhum perfil vinculado encontrado.", style = MaterialTheme.typography.bodySmall)
+            else -> profiles.forEach { profile ->
+                val stableId = profile.stableId()
+                val selected = stableId in selectedIds
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            onSelectionChange(
+                                if (selected) selectedIds - stableId else selectedIds + stableId
+                            )
+                        }
+                        .padding(vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Checkbox(
+                        checked = selected,
+                        onCheckedChange = { checked ->
+                            onSelectionChange(
+                                if (checked) selectedIds + stableId else selectedIds - stableId
+                            )
+                        }
+                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(profile.name.ifBlank { "Perfil ${profile.doorProfileIndex}" })
+                        Text(
+                            "#${profile.doorProfileIndex} · ${profile.chapterRoleLabel()} · ${profile.cardCount} cartão(ões)",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }
@@ -471,6 +571,25 @@ private fun recurrenceLabel(value: String): String {
         "weekly" -> "semanal"
         else -> "única"
     }
+}
+
+private fun selectedDoorIndices(
+    profiles: List<DoorAccessProfile>,
+    selectedIds: Set<String>
+): List<Int> {
+    return profiles
+        .filter { it.stableId() in selectedIds && it.doorProfileIndex >= 0 }
+        .map { it.doorProfileIndex }
+        .distinct()
+        .sorted()
+}
+
+private fun DoorAccessProfile.stableId(): String {
+    return firebaseUid.ifBlank { "$doorProfileIndex:$name" }
+}
+
+private fun DoorAccessProfile.chapterRoleLabel(): String {
+    return listOf(chapter, role).filter { it.isNotBlank() }.joinToString(" · ").ifBlank { "Sem capítulo" }
 }
 
 @Preview(showBackground = true)

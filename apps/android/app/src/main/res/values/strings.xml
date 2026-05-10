@@ -9,8 +9,8 @@
     <string name="password">Senha</string>
     <string name="cargo_no_capitulo">Cargo no capítulo</string>
     <string name="selecione_seu_capitulo_principal">Selecione seus capítulos</string>
-    <string name="phone_number">Phone Number</string>
-    <string name="register">Register</string>
+    <string name="phone_number">Telefone</string>
+    <string name="register">Cadastrar</string>
     <string name="login">Login</string>
     <string name="tarefas_do_capitulo">Tarefas do Capítulo</string>
     <string name="calendario_do_capitulo">Calendário do Capítulo</string>

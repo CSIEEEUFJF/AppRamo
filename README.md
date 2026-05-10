@@ -15,6 +15,8 @@ docs/
   arquitetura.md
   configuracao.md
   roadmap.md
+tools/
+  sync_door_firebase_users.py
 ```
 
 ## Escopo mínimo
@@ -27,6 +29,7 @@ O escopo mínimo do produto é o conjunto de funcionalidades já implementadas n
 - Tarefas por capítulo, com criação, conclusão, detalhes e exclusão.
 - Calendário por capítulo, com criação, detalhes, exclusão e integração com a agenda do dispositivo.
 - Controle de sala via API HTTP da placa para abertura de porta e modo reunião.
+- Vínculo administrativo entre perfis da porta e usuários Firebase para seleção de membros no modo reunião.
 
 Veja os detalhes em [docs/requisitos.md](docs/requisitos.md).
 
@@ -41,6 +44,7 @@ A documentação foi organizada no mesmo espírito do projeto IoT do Ramo: visã
 - [Segurança](docs/seguranca.md)
 - [Roadmap](docs/roadmap.md)
 - [Módulos do sistema](docs/modulos/README.md)
+- [Integração porta-Firebase](docs/modulos/integracao-porta-firebase.md)
 - [Checklist de validação](docs/checklist-validacao.md)
 
 ## Configuração rápida

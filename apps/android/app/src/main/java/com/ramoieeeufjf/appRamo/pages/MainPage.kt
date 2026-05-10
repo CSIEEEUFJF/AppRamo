@@ -3,17 +3,23 @@ package com.ramoieeeufjf.appRamo.pages
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -31,87 +37,126 @@ import com.ramoieeeufjf.appRamo.R
 fun MainPage(
     userName: String?,
     profilePictureUrl: String?,
-    canControlRoom: Boolean = false,
     onProfileClick: () -> Unit,
     onChapterTasksClick: () -> Unit,
     onChapterCalendarClick: () -> Unit,
     onRoomControlClick: () -> Unit,
     onBranchMembersClick: () -> Unit
 ) {
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 20.dp, vertical = 18.dp),
+        verticalArrangement = Arrangement.SpaceBetween,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row(
+        Surface(
             modifier = Modifier
-                .align(Alignment.TopCenter)
+                .fillMaxWidth()
                 .clickable { onProfileClick() },
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 1.dp,
+            shadowElevation = 1.dp,
+            shape = RoundedCornerShape(8.dp)
         ) {
-            Image(
-                painter = rememberAsyncImagePainter(
-                    model = profilePictureUrl ?: R.drawable.ic_launcher_foreground
-                ),
-                contentDescription = "Profile Picture",
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
-            )
-            Text(text = "Bem vindo, ${userName ?: "Usuário"}")
+            Row(
+                modifier = Modifier.padding(14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Image(
+                    painter = rememberAsyncImagePainter(
+                        model = profilePictureUrl ?: R.drawable.ic_launcher_foreground
+                    ),
+                    contentDescription = "Foto de perfil",
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Bem-vindo",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = userName ?: "Usuário",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
         }
 
+        Spacer(modifier = Modifier.height(28.dp))
+
         Column(
-            modifier = Modifier.align(Alignment.Center),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
             Image(
                 painter = painterResource(id = R.drawable.ieeelogo),
-                contentDescription = "IEEE Logo"
+                contentDescription = "IEEE Logo",
+                modifier = Modifier
+                    .fillMaxWidth(0.62f)
+                    .height(96.dp),
+                contentScale = ContentScale.Fit
             )
-            Spacer(modifier = Modifier.height(32.dp))
-            Button(onClick = onChapterTasksClick) {
-                Text(stringResource(id = R.string.tarefas_do_capitulo))
-            }
-            Button(onClick = onChapterCalendarClick) {
-                Text(stringResource(id = R.string.calendario_do_capitulo))
-            }
-            if (canControlRoom) {
-                Button(onClick = onRoomControlClick) {
+
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                HomeActionButton(text = stringResource(id = R.string.tarefas_do_capitulo), onClick = onChapterTasksClick)
+                HomeActionButton(text = stringResource(id = R.string.calendario_do_capitulo), onClick = onChapterCalendarClick)
+                Button(
+                    onClick = onRoomControlClick,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                ) {
                     Text(stringResource(id = R.string.controle_da_sala))
                 }
-            }
-            Button(onClick = onBranchMembersClick) {
-                Text(stringResource(id = R.string.membros_do_ramo))
+                HomeActionButton(text = stringResource(id = R.string.membros_do_ramo), onClick = onBranchMembersClick)
             }
         }
 
-        Row(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 32.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
+        Spacer(modifier = Modifier.height(30.dp))
+
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            shape = RoundedCornerShape(8.dp)
         ) {
             Image(
-                painter = painterResource(id = R.drawable.rasieee),
-                contentDescription = "RAS Logo",
-                modifier = Modifier.size(64.dp)
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Image(
-                painter = painterResource(id = R.drawable.iaslogo),
-                contentDescription = "IAS Logo",
-                modifier = Modifier.size(64.dp)
+                painter = painterResource(id = R.drawable.cslogo),
+                contentDescription = "CS Logo",
+                modifier = Modifier
+                    .padding(horizontal = 22.dp, vertical = 14.dp)
+                    .size(132.dp),
+                contentScale = ContentScale.Fit
             )
         }
+    }
+}
+
+@Composable
+private fun HomeActionButton(text: String, onClick: () -> Unit) {
+    ElevatedButton(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Text(text)
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun MainPagePreview() {
-    MainPage("Rafael", null, true, {}, {}, {}, {}, {})
+    MainPage("Rafael", null, {}, {}, {}, {}, {})
 }

@@ -4,7 +4,7 @@
 
 Permitir que o app abra a porta remotamente e gerencie o modo reunião implementado no sistema da porta.
 
-Este módulo é o ponto de contato entre o AppRamo e a infraestrutura IoT. A implementação atual foi baseada no repositório local `C:\Users\CS\Documents\IoT_Ramo_Renesas`, que expõe a nova API HTTP da placa.
+Este módulo é o ponto de contato entre o AppRamo e a infraestrutura IoT. A implementação atual foi baseada no repositório local `C:\Users\CS\Documents\IoT_Ramo_Renesas`, que expõe a nova API HTTP da placa e o export administrativo de perfis.
 
 ## Arquivos principais
 
@@ -12,6 +12,7 @@ Android:
 
 - [DoorControlPage.kt](../../apps/android/app/src/main/java/com/ramoieeeufjf/appRamo/pages/DoorControlPage.kt)
 - [build.gradle.kts](../../apps/android/app/build.gradle.kts)
+- [sync_door_firebase_users.py](../../tools/sync_door_firebase_users.py)
 
 iOS:
 
@@ -121,6 +122,7 @@ Agendamento semanal:
 Observações:
 
 - `profile_indices` usa os índices dos perfis cadastrados na placa, não os IDs do Firebase.
+- Os apps agora preferem os índices vindos de `doorProfiles/{uid}`; o campo manual continua como contingência operacional.
 - `delay_seconds` precisa ficar entre 1 segundo e 24 horas.
 - A placa precisa estar com horário sincronizado para converter atraso em `start_unix`.
 - Se `recurrence` for `weekly` e `weekdays` não for enviado, a placa usa o dia de `start_unix`.
@@ -178,31 +180,47 @@ As chaves reais não devem ser commitadas. Em produção, prefira manter as chav
 
 1. Usuário abre a tela de controle da sala.
 2. App consulta `GET /api/meeting/status`.
-3. App exibe estado do modo reunião e agendamentos pendentes.
-4. Usuário pode abrir a porta via `POST /api/door/open`.
-5. Usuário pode agendar modo reunião por atraso em minutos.
-6. Usuário pode cancelar um agendamento por ID ou cancelar todos.
+3. App lê `doorProfiles` no Firestore para listar membros vinculados aos perfis da porta.
+4. App exibe estado do modo reunião e agendamentos pendentes.
+5. Usuário pode abrir a porta via `POST /api/door/open`.
+6. Usuário pode agendar modo reunião por atraso em minutos selecionando membros vinculados ou digitando índices manualmente.
+7. Usuário pode cancelar um agendamento por ID ou cancelar todos.
+
+## Vínculo com Firebase
+
+O vínculo é feito por ferramenta administrativa, não pelo app cliente:
+
+```powershell
+$env:DOOR_ADMIN_PIN = "<PIN_ADMIN>"
+python tools/sync_door_firebase_users.py --door-url http://192.168.11.2 --service-account C:\caminho\service-account.json --apply-firebase
+```
+
+A ferramenta baixa o `users.json` da placa em `/storage_users_download`, relaciona com `users/{uid}` e publica `doorProfiles/{uid}` com o índice da placa e metadados sem UID completo de cartão.
+
+Detalhes operacionais: [integração porta-Firebase](integracao-porta-firebase.md).
 
 ## O que não faz parte deste app
 
 - Fechamento manual da porta.
 - Cadastro de perfis da placa.
-- Mapeamento automático entre usuário Firebase e índice do perfil na placa.
+- Escrita direta de vínculos da porta pelo app cliente.
 
 ## Pontos sensíveis
 
-- `profile_indices` depende da ordem/cadastro local da placa.
+- `profile_indices` depende da ordem/cadastro local da placa; após alteração manual dos perfis, rode a sincronização novamente.
 - O app não deve expor a chave da API em commits.
 - A tela de controle da sala só deve aparecer para usuários com cargo aprovado em `chapterRoles`.
 - Agendamento por atraso depende do NTP da placa.
 - O limite do firmware é de até 8 agendamentos pendentes.
 - Agendamentos recorrentes mantêm o mesmo ID e avançam para a próxima ocorrência.
+- UIDs completos de cartões devem ficar apenas na placa ou em export administrativo local, nunca em `doorProfiles`.
 
 ## Validação mínima
 
 - Abrir porta com chave válida.
 - Validar erro com chave inválida.
 - Consultar status do modo reunião.
+- Confirmar leitura de `doorProfiles` no Firestore.
 - Agendar reunião única.
 - Agendar reunião diária.
 - Agendar reunião semanal.

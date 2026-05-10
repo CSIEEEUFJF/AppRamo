@@ -4,10 +4,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.Box
 import com.ramoieeeufjf.appRamo.ui.theme.REIEEEUFJFTheme
 
 class MainActivity : ComponentActivity() {
@@ -16,7 +17,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             REIEEEUFJFTheme {
-                Scaffold {
+                Scaffold(containerColor = MaterialTheme.colorScheme.background) {
                     innerPadding ->
                     Box(modifier = Modifier.padding(innerPadding)) {
                         NavGraph()

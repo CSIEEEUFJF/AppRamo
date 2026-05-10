@@ -1,5 +1,6 @@
 import SwiftUI
 import FirebaseAuth
+import FirebaseFirestore
 
 struct DoorControlView: View {
     private let baseURL =
@@ -12,6 +13,11 @@ struct DoorControlView: View {
         ?? ""
 
     @State private var meetingStatus: MeetingStatusResponse?
+    @State private var doorProfiles: [DoorAccessProfile] = []
+    @State private var selectedDoorProfileIds = Set<String>()
+    @State private var profilesListener: ListenerRegistration?
+    @State private var profilesLoading = true
+    @State private var profilesError: String?
     @State private var delayMinutes = "5"
     @State private var profileIndices = ""
     @State private var recurrence = "none"
@@ -82,6 +88,11 @@ struct DoorControlView: View {
         .navigationTitle("Sala")
         .onAppear {
             refreshMeetingStatus()
+            startDoorProfilesListener()
+        }
+        .onDisappear {
+            profilesListener?.remove()
+            profilesListener = nil
         }
     }
 
@@ -144,6 +155,8 @@ struct DoorControlView: View {
                     .textFieldStyle(.roundedBorder)
                     .keyboardType(.numbersAndPunctuation)
 
+                doorProfilesSelector
+
                 Picker("Recorrência", selection: $recurrence) {
                     Text("Única").tag("none")
                     Text("Diária").tag("daily")
@@ -167,6 +180,48 @@ struct DoorControlView: View {
         }
     }
 
+    private var doorProfilesSelector: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Perfis vinculados ao Firebase")
+                .font(.subheadline)
+                .bold()
+
+            if profilesLoading {
+                ProgressView("Carregando perfis vinculados...")
+            } else if let profilesError {
+                Text("Falha ao carregar vínculos: \(profilesError)")
+                    .font(.caption)
+                    .foregroundColor(.red)
+            } else if doorProfiles.isEmpty {
+                Text("Nenhum perfil vinculado encontrado.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            } else {
+                ForEach(doorProfiles) { profile in
+                    let selected = selectedDoorProfileIds.contains(profile.stableId)
+                    Button {
+                        toggleDoorProfile(profile)
+                    } label: {
+                        HStack(alignment: .top, spacing: 10) {
+                            Image(systemName: selected ? "checkmark.circle.fill" : "circle")
+                                .foregroundColor(selected ? .accentColor : .secondary)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(profile.displayName)
+                                    .foregroundColor(.primary)
+                                Text("#\(profile.doorProfileIndex ?? -1) · \(profile.chapterRoleLabel) · \(profile.cardCount ?? 0) cartão(ões)")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
     private var cancelBox: some View {
         GroupBox("Cancelar agendamento") {
             VStack(spacing: 12) {
@@ -187,6 +242,39 @@ struct DoorControlView: View {
     private func endpoint(_ path: String) -> URL? {
         let root = baseURL.hasSuffix("/") ? String(baseURL.dropLast()) : baseURL
         return URL(string: "\(root)\(path)")
+    }
+
+    private func startDoorProfilesListener() {
+        if profilesListener != nil {
+            return
+        }
+
+        profilesLoading = true
+        profilesError = nil
+        profilesListener = Firestore.firestore()
+            .collection("doorProfiles")
+            .order(by: "name")
+            .addSnapshotListener { snapshot, error in
+                DispatchQueue.main.async {
+                    profilesLoading = false
+
+                    if let error = error {
+                        profilesError = error.localizedDescription
+                        return
+                    }
+
+                    profilesError = nil
+                    let profiles = snapshot?.documents.compactMap { document in
+                        try? document.data(as: DoorAccessProfile.self)
+                    } ?? []
+                    doorProfiles = profiles
+                        .filter { ($0.doorProfileIndex ?? -1) >= 0 }
+                        .sorted { $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedAscending }
+
+                    let availableIds = Set(doorProfiles.map(\.stableId))
+                    selectedDoorProfileIds = selectedDoorProfileIds.intersection(availableIds)
+                }
+            }
     }
 
     private func makeRequest(path: String, method: String, body: Data? = nil, completion: @escaping (Result<URLRequest, Error>) -> Void) {
@@ -330,7 +418,7 @@ struct DoorControlView: View {
 
             let payload = MeetingSchedulePayload(
                 delay_seconds: minutes * 60,
-                profile_indices: try parseProfileIndices(),
+                profile_indices: try selectedOrManualProfileIndices(),
                 recurrence: recurrence,
                 weekdays: recurrence == "weekly" ? try parseWeekdays() : nil
             )
@@ -368,6 +456,25 @@ struct DoorControlView: View {
             }
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    private func selectedOrManualProfileIndices() throws -> [Int] {
+        let selectedIndices = doorProfiles
+            .filter { selectedDoorProfileIds.contains($0.stableId) }
+            .compactMap(\.doorProfileIndex)
+            .filter { $0 >= 0 }
+        if !selectedIndices.isEmpty {
+            return Array(Set(selectedIndices)).sorted()
+        }
+        return try parseProfileIndices()
+    }
+
+    private func toggleDoorProfile(_ profile: DoorAccessProfile) {
+        if selectedDoorProfileIds.contains(profile.stableId) {
+            selectedDoorProfileIds.remove(profile.stableId)
+        } else {
+            selectedDoorProfileIds.insert(profile.stableId)
         }
     }
 
