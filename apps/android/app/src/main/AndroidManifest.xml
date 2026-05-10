@@ -5,15 +5,15 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
-        android:fullBackupContent="@xml/backup_rules"
+        android:fullBackupContent="false"
         android:icon="@drawable/ramoieee"
         android:label="@string/app_name"
         android:roundIcon="@drawable/ramoieee"
         android:supportsRtl="true"
         android:theme="@style/Theme.REIEEEUFJF"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="false">
         <activity
             android:name=".MainActivity"
             android:exported="true"

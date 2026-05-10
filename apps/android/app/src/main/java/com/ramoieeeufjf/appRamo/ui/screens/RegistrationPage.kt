@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
 import com.ramoieeeufjf.appRamo.R
 import kotlinx.coroutines.launch
@@ -51,8 +52,10 @@ fun RegistrationPage(
     var password by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var existingProfilePictureUrl by remember { mutableStateOf<String?>(null) }
+    var approvedChapterRoles by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
 
-    // The new data structure: A map from Chapter (String) to Role (String)
+    // Solicitações do usuário. Permissões efetivas continuam em chapterRoles e devem ser aprovadas fora do app.
     var chapterRoles by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
 
     val allChapters = listOf("RAS", "IAS", "PES", "WIE", "EdSoc", "Diretoria", "SIGHT")
@@ -63,9 +66,11 @@ fun RegistrationPage(
             val userDoc = db.collection("users").document(currentUser.uid).get().await()
             name = userDoc.getString("name") ?: ""
             birthDate = userDoc.getDate("birthDate")
-            email = userDoc.getString("email") ?: ""
+            email = userDoc.getString("email") ?: currentUser.email ?: ""
             phoneNumber = userDoc.getString("phoneNumber") ?: ""
-            chapterRoles = userDoc.get("chapterRoles") as? Map<String, String> ?: emptyMap()
+            existingProfilePictureUrl = userDoc.getString("profilePictureUrl")
+            approvedChapterRoles = readStringMap(userDoc.get("chapterRoles"))
+            chapterRoles = readStringMap(userDoc.get("requestedChapterRoles")).ifEmpty { approvedChapterRoles }
         }
     }
 
@@ -96,7 +101,11 @@ fun RegistrationPage(
 
         Box(modifier = Modifier.clickable { imagePickerLauncher.launch("image/*") }) {
             Image(
-                painter = if (imageUri != null) rememberAsyncImagePainter(imageUri) else painterResource(id = R.drawable.ic_launcher_foreground),
+                painter = if (imageUri != null || !existingProfilePictureUrl.isNullOrBlank()) {
+                    rememberAsyncImagePainter(imageUri ?: existingProfilePictureUrl)
+                } else {
+                    painterResource(id = R.drawable.ic_launcher_foreground)
+                },
                 contentDescription = "Profile Picture",
                 modifier = Modifier.size(120.dp).clip(CircleShape), contentScale = ContentScale.Crop
             )
@@ -134,16 +143,27 @@ fun RegistrationPage(
 
                     val userData = mutableMapOf<String, Any>(
                         "name" to name,
-                        "birthDate" to (birthDate ?: Date()),
-                        "chapterRoles" to chapterRoles,
+                        "requestedChapterRoles" to chapterRoles,
                         "phoneNumber" to phoneNumber
                     )
+                    birthDate?.let { userData["birthDate"] = it }
                     if (currentUser == null) {
-                         userData["email"] = email
+                        userData["email"] = email
+                        userData["chapterRoles"] = approvedChapterRoles
                     }
                     uploadedPictureUrl?.let { userData["profilePictureUrl"] = it }
 
-                    db.collection("users").document(uid).set(userData).await()
+                    db.collection("users").document(uid).set(userData, SetOptions.merge()).await()
+
+                    val publicProfile = mutableMapOf<String, Any>(
+                        "name" to name,
+                        "chapterRoles" to approvedChapterRoles
+                    )
+                    val publicPictureUrl = uploadedPictureUrl ?: existingProfilePictureUrl
+                    publicPictureUrl?.takeIf { it.isNotBlank() }?.let {
+                        publicProfile["profilePictureUrl"] = it
+                    }
+                    db.collection("publicProfiles").document(uid).set(publicProfile).await()
                     onRegisterClick()
 
                 } catch (e: Exception) {
@@ -247,4 +267,15 @@ fun ChapterSelection(allChapters: List<String>, selectedRoles: Map<String, Strin
 @Composable
 fun RegistrationPagePreview() {
     RegistrationPage(onRegisterClick = {})
+}
+
+private fun readStringMap(value: Any?): Map<String, String> {
+    return (value as? Map<*, *>)
+        ?.mapNotNull { (key, mapValue) ->
+            val chapter = key as? String
+            val role = mapValue as? String
+            if (chapter.isNullOrBlank() || role.isNullOrBlank()) null else chapter to role
+        }
+        ?.toMap()
+        ?: emptyMap()
 }

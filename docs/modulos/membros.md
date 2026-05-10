@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Exibir os membros cadastrados, seus capítulos e cargos, permitindo consulta rápida de dados de contato.
+Exibir os membros cadastrados, seus capítulos e cargos aprovados, sem expor dados pessoais sensíveis.
 
 ## Arquivos principais
 
@@ -17,34 +17,32 @@ iOS:
 
 ## Fonte de dados
 
-Coleção: `users`
+Coleção: `publicProfiles`
 
 Campos consumidos:
 
 - `name`
-- `phoneNumber`
 - `profilePictureUrl`
 - `chapterRoles`
-- `email`, no iOS para detalhe do membro
 
 ## Comportamento esperado
 
 Android:
 
-- Escuta `users` em tempo real.
+- Escuta `publicProfiles` em tempo real.
 - Agrupa membros por capítulo.
 - Exibe grade com foto e nome.
-- Ao tocar no membro, mostra cargo no capítulo selecionado e telefone.
+- Ao tocar no membro, mostra capítulo e cargo aprovado.
 
 iOS:
 
-- Busca os usuários no Firestore ao abrir a tela.
-- Exibe grade com foto, nome e primeiro capítulo/cargo.
-- Ao tocar no membro, mostra detalhes, cargos, e-mail e telefone.
+- Escuta `publicProfiles` em tempo real.
+- Agrupa membros por capítulo.
+- Ao tocar no membro, mostra apenas detalhes públicos e cargos aprovados.
 
 ## Fluxo principal
 
-1. App consulta a coleção `users`.
+1. App consulta a coleção `publicProfiles`.
 2. App transforma cada documento em perfil de usuário.
 3. App usa `chapterRoles` para exibir vínculo com capítulos.
 4. Usuário toca em um membro.
@@ -54,14 +52,13 @@ iOS:
 
 - Perfis sem `chapterRoles` devem continuar aparecendo de forma segura.
 - Fotos podem vir como URL pública ou referência Firebase Storage.
-- Android e iOS hoje apresentam agrupamentos diferentes; a experiência deve ser padronizada.
-- Dados sensíveis como telefone devem respeitar regras de acesso definidas pelo Ramo.
+- Android e iOS devem manter o mesmo agrupamento por capítulo.
+- Dados sensíveis como telefone, e-mail e nascimento permanecem em `users/{uid}`.
 
 ## Validação mínima
 
 - Criar três usuários em capítulos diferentes.
 - Confirmar exibição de nome e foto.
-- Confirmar agrupamento por capítulo no Android.
+- Confirmar agrupamento por capítulo nas duas plataformas.
 - Confirmar detalhe do usuário nas duas plataformas.
 - Confirmar atualização após alteração no Firestore.
-

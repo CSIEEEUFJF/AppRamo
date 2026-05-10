@@ -35,7 +35,7 @@ Coleção: `events/{eventId}`
 
 - Usuário vê eventos dos seus capítulos.
 - Usuário vê eventos globais marcados como `Todos`.
-- O iOS também inclui `Geral` no listener atual.
+- As duas plataformas usam `Todos` como marcador global.
 
 ## Fluxo principal
 
@@ -63,7 +63,7 @@ iOS:
 
 - Firestore pode exigir índice composto para `chapter` e `startTime`.
 - Permissões de calendário precisam estar declaradas no iOS.
-- Eventos globais devem ter convenção única: `Todos` ou `Geral`.
+- Eventos globais devem usar a convenção única `Todos`.
 - O Android permite selecionar início e fim; o iOS usa duração padrão de 1 hora no fluxo atual.
 
 ## Validação mínima
@@ -73,4 +73,3 @@ iOS:
 - Confirmar ordenação por data.
 - Salvar evento no calendário do dispositivo.
 - Excluir evento e confirmar remoção em tempo real.
-

@@ -44,8 +44,10 @@ struct MainView: View {
                 NavigationLink("Calendário do Capítulo", destination: CalendarView())
                     .buttonStyle(MainButtonStyle())
                 
-                NavigationLink("Controle da Sala", destination: DoorControlView())
-                    .buttonStyle(MainButtonStyle())
+                if AccessPolicy.canControlRoom(viewModel.currentUser?.chapterRoles ?? [:]) {
+                    NavigationLink("Controle da Sala", destination: DoorControlView())
+                        .buttonStyle(MainButtonStyle())
+                }
                 
                 NavigationLink("Membros do Ramo", destination: MembersView())
                     .buttonStyle(MainButtonStyle())

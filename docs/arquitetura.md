@@ -37,7 +37,7 @@ flowchart LR
   - Android Gradle Plugin
   - Kotlin
   - Jetpack Compose
-  - Firebase Auth, Firestore, Realtime Database e Storage
+  - Firebase Auth, Firestore e Storage
   - Ktor Client
   - Coil
 
@@ -75,6 +75,21 @@ flowchart LR
   "chapterRoles": {
     "RAS": "Presidente",
     "IAS": "Membro"
+  },
+  "requestedChapterRoles": {
+    "RAS": "Membro"
+  }
+}
+```
+
+### `publicProfiles/{uid}`
+
+```json
+{
+  "name": "Nome do membro",
+  "profilePictureUrl": "https://...",
+  "chapterRoles": {
+    "RAS": "Presidente"
   }
 }
 ```
@@ -122,8 +137,8 @@ O controle da sala usa a API HTTP exposta pelo sistema da porta com:
 - `GET /api/meeting/status`
 - `POST /api/meeting/schedule`
 - `POST /api/meeting/cancel`
-- Header `X-API-KEY`
+- Header `X-API-KEY` ou `Authorization: Bearer <Firebase ID Token>`
 
-O Android lê `DOOR_API_BASE_URL` e `DOOR_API_KEY` de propriedades Gradle. O iOS lê `DoorAPIBaseURL` e `DoorAPIKey` do `Info.plist`. O Android ainda aceita os nomes antigos `DOOR_RELAY_BASE_URL` e `DOOR_RELAY_API_KEY` como fallback.
+O Android lê `DOOR_API_BASE_URL` e `DOOR_API_KEY` de propriedades Gradle. O iOS lê `DoorAPIBaseURL` e `DoorAPIKey` do `Info.plist`. Quando a chave está vazia, os apps enviam Firebase ID Token para uma API intermediária. O Android ainda aceita os nomes antigos `DOOR_RELAY_BASE_URL` e `DOOR_RELAY_API_KEY` como fallback.
 
 O módulo de controle da sala está detalhado em [modulos/controle-da-sala.md](modulos/controle-da-sala.md), incluindo o contrato esperado pelo app e observações de integração com o projeto IoT do Ramo.

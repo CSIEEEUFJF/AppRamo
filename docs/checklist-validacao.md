@@ -12,7 +12,7 @@ Este checklist cobre a primeira rodada de validação manual e técnica do AppRa
 ## Android
 
 - Adicionar `apps/android/app/google-services.json`.
-- Configurar `DOOR_API_BASE_URL` e `DOOR_API_KEY`.
+- Configurar `DOOR_API_BASE_URL`. Use `DOOR_API_KEY` apenas para teste local/legado.
 - Rodar `.\gradlew.bat :app:assembleDebug`.
 - Rodar `.\gradlew.bat :app:testDebugUnitTest`.
 - Instalar o app em emulador ou dispositivo.
@@ -21,7 +21,7 @@ Este checklist cobre a primeira rodada de validação manual e técnica do AppRa
 ## iOS
 
 - Adicionar `apps/ios/AppRamoIEEE/GoogleService-Info.plist`.
-- Configurar `DoorAPIBaseURL` e `DoorAPIKey`.
+- Configurar `DoorAPIBaseURL`. Use `DoorAPIKey` apenas para teste local/legado.
 - Resolver Swift Packages no Xcode.
 - Compilar o target `AppRamoIEEE`.
 - Validar login, cadastro, perfil, tarefas, calendário, membros e controle da sala.
@@ -31,10 +31,12 @@ Este checklist cobre a primeira rodada de validação manual e técnica do AppRa
 - Confirmar Authentication com provedor e-mail/senha ativo.
 - Criar usuário de teste.
 - Confirmar escrita e leitura em `users`.
+- Confirmar escrita e leitura sanitizada em `publicProfiles`.
 - Confirmar escrita e leitura em `tasks`.
 - Confirmar escrita e leitura em `events`.
 - Confirmar upload e leitura de imagem no Storage.
 - Validar índices necessários do Firestore.
+- Publicar e testar `firestore.rules` e `storage.rules`.
 
 ## Controle da sala
 
@@ -43,7 +45,7 @@ Este checklist cobre a primeira rodada de validação manual e técnica do AppRa
 - Confirmar `POST /api/meeting/schedule` com `delay_seconds` e `profile_indices`.
 - Confirmar `POST /api/meeting/cancel` com ID.
 - Confirmar `POST /api/meeting/cancel` sem ID para cancelar todos.
-- Validar mensagem de erro sem conexão ou sem chave.
+- Validar mensagem de erro sem conexão, sem chave ou sem token autenticado.
 - Validar que a chave de API não aparece em logs ou commits.
 
 ## Critérios de pronto para MVP

@@ -33,7 +33,7 @@ Coleção: `tasks/{taskId}`
 
 - Usuário vê tarefas dos capítulos presentes em `chapterRoles`.
 - Usuário vê tarefas globais marcadas como `Todos`.
-- O iOS também inclui `Geral` no listener atual.
+- As duas plataformas usam `Todos` como marcador global.
 
 ## Fluxo principal
 
@@ -66,4 +66,3 @@ Coleção: `tasks/{taskId}`
 - Confirmar que tarefa de outro capítulo não aparece para usuário sem acesso.
 - Marcar tarefa como concluída.
 - Excluir tarefa e confirmar remoção em tempo real.
-

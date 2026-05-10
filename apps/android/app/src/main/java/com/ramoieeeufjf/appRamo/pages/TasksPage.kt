@@ -30,6 +30,7 @@ data class ChapterTask(
 fun TasksPage(
     tasks: List<ChapterTask>,
     userChapters: List<String>,
+    canManageContent: Boolean = false,
     onAddTask: (ChapterTask) -> Unit,
     onTaskCompleted: (String, Boolean) -> Unit,
     onDeleteTask: (String) -> Unit // New delete handler
@@ -39,7 +40,7 @@ fun TasksPage(
 
     Scaffold(
         floatingActionButton = {
-            if (userChapters.isNotEmpty()) {
+            if (canManageContent && userChapters.isNotEmpty()) {
                 FloatingActionButton(onClick = { showDialog = true }) {
                     Icon(Icons.Default.Add, contentDescription = "Adicionar tarefa")
                 }
@@ -66,6 +67,7 @@ fun TasksPage(
                 items(tasks, key = { it.id }) { task ->
                     TaskItem(
                         task = task, 
+                        canManageContent = canManageContent,
                         onTaskCompleted = onTaskCompleted,
                         onClick = { selectedTask = task } // Make item clickable
                     )
@@ -93,6 +95,7 @@ fun TasksPage(
     selectedTask?.let {
         TaskDetailsDialog(
             task = it,
+            canManageContent = canManageContent,
             onDismiss = { selectedTask = null },
             onDelete = { taskId ->
                 onDeleteTask(taskId)
@@ -105,6 +108,7 @@ fun TasksPage(
 @Composable
 fun TaskItem(
     task: ChapterTask, 
+    canManageContent: Boolean,
     onTaskCompleted: (String, Boolean) -> Unit,
     onClick: () -> Unit
 ) {
@@ -123,7 +127,11 @@ fun TaskItem(
         ) {
             Checkbox(
                 checked = task.completed,
-                onCheckedChange = { onTaskCompleted(task.id, it) }
+                onCheckedChange = if (canManageContent) {
+                    { onTaskCompleted(task.id, it) }
+                } else {
+                    null
+                }
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = task.title, style = MaterialTheme.typography.titleMedium)
@@ -205,7 +213,12 @@ private fun TaskDialog(
 }
 
 @Composable
-fun TaskDetailsDialog(task: ChapterTask, onDismiss: () -> Unit, onDelete: (String) -> Unit) {
+fun TaskDetailsDialog(
+    task: ChapterTask,
+    canManageContent: Boolean,
+    onDismiss: () -> Unit,
+    onDelete: (String) -> Unit
+) {
     Dialog(onDismissRequest = onDismiss) {
         Surface(shape = MaterialTheme.shapes.large, modifier = Modifier.padding(16.dp)) {
             Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -216,13 +229,15 @@ fun TaskDetailsDialog(task: ChapterTask, onDismiss: () -> Unit, onDelete: (Strin
                 Text(text = "Capítulo: ${task.chapter}")
                 Spacer(modifier = Modifier.height(16.dp))
                  Row {
-                    Button(
-                        onClick = { onDelete(task.id) },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                    ) {
-                        Text("Delete")
+                    if (canManageContent) {
+                        Button(
+                            onClick = { onDelete(task.id) },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                        ) {
+                            Text("Delete")
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
                     Button(onClick = onDismiss) {
                         Text("Fechar")
                     }
@@ -241,6 +256,6 @@ fun TasksPagePreview() {
         ChapterTask(id = "2", title = "Send weekly report", chapter = "Diretoria", completed = true)
     )
     REIEEEUFJFTheme {
-        TasksPage(tasks = sampleTasks, userChapters = listOf("RAS", "Diretoria", "Todos"), onAddTask = {}, onTaskCompleted = { _, _ -> }, onDeleteTask = {})
+        TasksPage(tasks = sampleTasks, userChapters = listOf("RAS", "Diretoria", "Todos"), canManageContent = true, onAddTask = {}, onTaskCompleted = { _, _ -> }, onDeleteTask = {})
     }
 }

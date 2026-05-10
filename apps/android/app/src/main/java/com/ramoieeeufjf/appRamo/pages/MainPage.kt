@@ -31,6 +31,7 @@ import com.ramoieeeufjf.appRamo.R
 fun MainPage(
     userName: String?,
     profilePictureUrl: String?,
+    canControlRoom: Boolean = false,
     onProfileClick: () -> Unit,
     onChapterTasksClick: () -> Unit,
     onChapterCalendarClick: () -> Unit,
@@ -77,8 +78,10 @@ fun MainPage(
             Button(onClick = onChapterCalendarClick) {
                 Text(stringResource(id = R.string.calendario_do_capitulo))
             }
-            Button(onClick = onRoomControlClick) {
-                Text(stringResource(id = R.string.controle_da_sala))
+            if (canControlRoom) {
+                Button(onClick = onRoomControlClick) {
+                    Text(stringResource(id = R.string.controle_da_sala))
+                }
             }
             Button(onClick = onBranchMembersClick) {
                 Text(stringResource(id = R.string.membros_do_ramo))
@@ -110,5 +113,5 @@ fun MainPage(
 @Preview(showBackground = true)
 @Composable
 fun MainPagePreview() {
-    MainPage("Rafael", null, {}, {}, {}, {}, {})
+    MainPage("Rafael", null, true, {}, {}, {}, {}, {})
 }

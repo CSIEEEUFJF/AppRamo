@@ -24,15 +24,16 @@ iOS:
 Todas as rotas usam:
 
 - `X-API-KEY: <chave>`
-- ou `Authorization: Bearer <chave>`, no firmware
+- ou `Authorization: Bearer <Firebase ID Token>`, quando há uma API intermediária
 
-O app usa `X-API-KEY`.
+Os apps usam `X-API-KEY` apenas quando a chave local está configurada. Se a chave estiver vazia, enviam `Authorization: Bearer <Firebase ID Token>`.
 
 ### Abrir porta
 
 ```http
 POST /api/door/open
 X-API-KEY: <chave>
+# ou Authorization: Bearer <Firebase ID Token>
 ```
 
 Resposta de sucesso:
@@ -46,6 +47,7 @@ Resposta de sucesso:
 ```http
 GET /api/meeting/status
 X-API-KEY: <chave>
+# ou Authorization: Bearer <Firebase ID Token>
 ```
 
 Resposta esperada:
@@ -82,6 +84,7 @@ Resposta esperada:
 POST /api/meeting/schedule
 Content-Type: application/json
 X-API-KEY: <chave>
+# ou Authorization: Bearer <Firebase ID Token>
 ```
 
 Agendamento relativo:
@@ -130,6 +133,7 @@ Cancelar por ID:
 POST /api/meeting/cancel
 Content-Type: application/json
 X-API-KEY: <chave>
+# ou Authorization: Bearer <Firebase ID Token>
 ```
 
 ```json
@@ -141,6 +145,7 @@ Cancelar todos:
 ```http
 POST /api/meeting/cancel
 X-API-KEY: <chave>
+# ou Authorization: Bearer <Firebase ID Token>
 ```
 
 Sem corpo.
@@ -167,7 +172,7 @@ Fallbacks aceitos no iOS:
 - `DoorRelayBaseURL`
 - `DoorRelayAPIKey`
 
-As chaves reais não devem ser commitadas.
+As chaves reais não devem ser commitadas. Em produção, prefira manter as chaves vazias nos apps e validar o Firebase ID Token em uma API intermediária antes de acionar a porta.
 
 ## Fluxo principal
 
@@ -188,6 +193,7 @@ As chaves reais não devem ser commitadas.
 
 - `profile_indices` depende da ordem/cadastro local da placa.
 - O app não deve expor a chave da API em commits.
+- A tela de controle da sala só deve aparecer para usuários com cargo aprovado em `chapterRoles`.
 - Agendamento por atraso depende do NTP da placa.
 - O limite do firmware é de até 8 agendamentos pendentes.
 - Agendamentos recorrentes mantêm o mesmo ID e avançam para a próxima ocorrência.

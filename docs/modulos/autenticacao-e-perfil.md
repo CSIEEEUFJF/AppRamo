@@ -37,6 +37,9 @@ Campos mínimos:
   "chapterRoles": {
     "RAS": "Membro",
     "Diretoria": "Presidente"
+  },
+  "requestedChapterRoles": {
+    "RAS": "Membro"
   }
 }
 ```
@@ -46,14 +49,14 @@ Campos mínimos:
 1. Usuário informa e-mail e senha.
 2. App chama Firebase Authentication.
 3. Em caso de sucesso, app carrega `users/{uid}`.
-4. App guarda nome, e-mail, foto e `chapterRoles`.
+4. App guarda nome, e-mail, foto e `chapterRoles` aprovados.
 5. App libera navegação para a tela inicial.
 
 ## Fluxo de cadastro
 
 1. Usuário informa dados pessoais.
 2. App cria conta no Firebase Authentication.
-3. App salva dados complementares no Firestore.
+3. App salva dados complementares no Firestore com `requestedChapterRoles`.
 4. App faz upload de foto de perfil quando selecionada.
 5. App volta para o fluxo autenticado.
 
@@ -78,6 +81,7 @@ Cargos mínimos:
 
 - O e-mail vem do Firebase Authentication e deve continuar consistente com o Firestore.
 - As regras do Firestore devem impedir edição indevida de perfis de terceiros.
+- O usuário pode alterar `requestedChapterRoles`, mas não pode promover a si mesmo alterando `chapterRoles`.
 - O fluxo de edição não deve recriar usuário no Authentication.
 - O caminho de Storage para fotos precisa ser padronizado entre Android e iOS.
 
@@ -85,7 +89,6 @@ Cargos mínimos:
 
 - Criar conta nova.
 - Fazer login com conta existente.
-- Editar nome, telefone, cargos e foto.
-- Confirmar que `chapterRoles` foi salvo como mapa.
+- Editar nome, telefone, solicitação de cargos e foto.
+- Confirmar que `requestedChapterRoles` foi salvo como mapa e que `chapterRoles` não foi alterado pelo cliente.
 - Sair e entrar novamente mantendo os dados.
-

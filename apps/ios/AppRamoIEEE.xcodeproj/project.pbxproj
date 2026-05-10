@@ -8,13 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		998E9F502EE11FC10013782C /* SDWebImageWebPCoder in Frameworks */ = {isa = PBXBuildFile; productRef = 998E9F4F2EE11FC10013782C /* SDWebImageWebPCoder */; };
-		999961972EE0ED780095E314 /* FirebaseAI in Frameworks */ = {isa = PBXBuildFile; productRef = 999961962EE0ED780095E314 /* FirebaseAI */; };
-		999961992EE0ED780095E314 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 999961982EE0ED780095E314 /* FirebaseAnalytics */; };
-		9999619B2EE0ED780095E314 /* FirebaseAnalyticsCore in Frameworks */ = {isa = PBXBuildFile; productRef = 9999619A2EE0ED780095E314 /* FirebaseAnalyticsCore */; };
 		9999619E2EE0EF0D0095E314 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = 9999619D2EE0EF0D0095E314 /* SDWebImageSwiftUI */; };
 		999961A02EE0F1CE0095E314 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 9999619F2EE0F1CE0095E314 /* FirebaseAuth */; };
 		999961A22EE0F1CE0095E314 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 999961A12EE0F1CE0095E314 /* FirebaseCore */; };
-		999961A42EE0F1CE0095E314 /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = 999961A32EE0F1CE0095E314 /* FirebaseDatabase */; };
 		999961A62EE0F1CE0095E314 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 999961A52EE0F1CE0095E314 /* FirebaseFirestore */; };
 		999961A82EE0F1CE0095E314 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 999961A72EE0F1CE0095E314 /* FirebaseStorage */; };
 /* End PBXBuildFile section */
@@ -71,13 +67,9 @@
 				9999619E2EE0EF0D0095E314 /* SDWebImageSwiftUI in Frameworks */,
 				999961A02EE0F1CE0095E314 /* FirebaseAuth in Frameworks */,
 				999961A82EE0F1CE0095E314 /* FirebaseStorage in Frameworks */,
-				999961992EE0ED780095E314 /* FirebaseAnalytics in Frameworks */,
-				9999619B2EE0ED780095E314 /* FirebaseAnalyticsCore in Frameworks */,
 				999961A22EE0F1CE0095E314 /* FirebaseCore in Frameworks */,
 				999961A62EE0F1CE0095E314 /* FirebaseFirestore in Frameworks */,
-				999961A42EE0F1CE0095E314 /* FirebaseDatabase in Frameworks */,
 				998E9F502EE11FC10013782C /* SDWebImageWebPCoder in Frameworks */,
-				999961972EE0ED780095E314 /* FirebaseAI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -136,13 +128,9 @@
 			);
 			name = AppRamoIEEE;
 			packageProductDependencies = (
-				999961962EE0ED780095E314 /* FirebaseAI */,
-				999961982EE0ED780095E314 /* FirebaseAnalytics */,
-				9999619A2EE0ED780095E314 /* FirebaseAnalyticsCore */,
 				9999619D2EE0EF0D0095E314 /* SDWebImageSwiftUI */,
 				9999619F2EE0F1CE0095E314 /* FirebaseAuth */,
 				999961A12EE0F1CE0095E314 /* FirebaseCore */,
-				999961A32EE0F1CE0095E314 /* FirebaseDatabase */,
 				999961A52EE0F1CE0095E314 /* FirebaseFirestore */,
 				999961A72EE0F1CE0095E314 /* FirebaseStorage */,
 				998E9F4F2EE11FC10013782C /* SDWebImageWebPCoder */,
@@ -354,7 +342,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -411,7 +399,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -491,7 +479,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 6D3GQ7JBWH;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = rafaellnick.AppRamoIEEETests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -510,7 +498,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 6D3GQ7JBWH;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = rafaellnick.AppRamoIEEETests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -629,21 +617,6 @@
 			package = 998E9F4E2EE11FC10013782C /* XCRemoteSwiftPackageReference "SDWebImageWebPCoder" */;
 			productName = SDWebImageWebPCoder;
 		};
-		999961962EE0ED780095E314 /* FirebaseAI */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 999961952EE0ED780095E314 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAI;
-		};
-		999961982EE0ED780095E314 /* FirebaseAnalytics */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 999961952EE0ED780095E314 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAnalytics;
-		};
-		9999619A2EE0ED780095E314 /* FirebaseAnalyticsCore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 999961952EE0ED780095E314 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAnalyticsCore;
-		};
 		9999619D2EE0EF0D0095E314 /* SDWebImageSwiftUI */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 9999619C2EE0EF0D0095E314 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */;
@@ -658,11 +631,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 999961952EE0ED780095E314 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseCore;
-		};
-		999961A32EE0F1CE0095E314 /* FirebaseDatabase */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 999961952EE0ED780095E314 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseDatabase;
 		};
 		999961A52EE0F1CE0095E314 /* FirebaseFirestore */ = {
 			isa = XCSwiftPackageProductDependency;

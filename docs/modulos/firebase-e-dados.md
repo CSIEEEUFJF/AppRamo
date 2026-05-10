@@ -18,8 +18,9 @@ Documento: `users/{uid}`
 
 Responsabilidade:
 
-- guardar dados públicos/operacionais do membro;
-- guardar capítulos e cargos;
+- guardar dados privados/operacionais do próprio membro;
+- guardar capítulos e cargos aprovados em `chapterRoles`;
+- guardar solicitações de capítulos/cargos em `requestedChapterRoles`;
 - guardar URL da foto de perfil.
 
 Campos mínimos:
@@ -28,6 +29,22 @@ Campos mínimos:
 - `email`
 - `phoneNumber`
 - `birthDate`
+- `profilePictureUrl`
+- `chapterRoles`
+- `requestedChapterRoles`
+
+### `publicProfiles`
+
+Documento: `publicProfiles/{uid}`
+
+Responsabilidade:
+
+- disponibilizar somente dados públicos de membros autenticados;
+- evitar exposição de telefone, e-mail e data de nascimento na listagem geral.
+
+Campos mínimos:
+
+- `name`
 - `profilePictureUrl`
 - `chapterRoles`
 
@@ -94,14 +111,15 @@ Recomendação:
 Diretriz mínima:
 
 - somente usuários autenticados podem ler dados necessários ao app;
-- usuário só pode editar seu próprio perfil;
+- usuário só pode editar seu próprio perfil privado;
+- usuário não pode alterar `chapterRoles` pelo app cliente;
 - criação/edição/exclusão de tarefas e eventos deve depender de cargo ou capítulo;
 - fotos devem ser gravadas apenas pelo próprio usuário ou por administradores.
 
 ## Pontos sensíveis
 
 - Consultas com `whereIn` têm limite de itens; se um usuário tiver muitos capítulos, pode ser necessário dividir consultas.
-- Dados globais usam `Todos` em parte do app e `Geral` em parte do iOS; escolher uma convenção única.
+- Dados globais usam a convenção única `Todos`.
 - Regras de segurança precisam acompanhar o modelo de cargo.
 - Migrações de campos devem ser compatíveis com Android e iOS ao mesmo tempo.
 
@@ -113,4 +131,3 @@ Diretriz mínima:
 - Criar tarefa e evento global.
 - Confirmar índices exigidos pelo Firestore.
 - Testar regras com usuário comum e usuário de diretoria.
-

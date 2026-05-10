@@ -19,3 +19,11 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Firestore cria estes modelos por reflexão ao usar toObject/data class.
+-keep class com.ramoieeeufjf.appRamo.pages.ChapterEvent { *; }
+-keep class com.ramoieeeufjf.appRamo.pages.ChapterTask { *; }
+-keep class com.ramoieeeufjf.appRamo.pages.UserProfile { *; }
+
+# Dependência opcional referenciada por bibliotecas transitivas.
+-dontwarn org.slf4j.impl.StaticLoggerBinder

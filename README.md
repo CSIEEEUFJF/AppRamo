@@ -38,6 +38,7 @@ A documentação foi organizada no mesmo espírito do projeto IoT do Ramo: visã
 - [Arquitetura](docs/arquitetura.md)
 - [Requisitos](docs/requisitos.md)
 - [Configuração local](docs/configuracao.md)
+- [Segurança](docs/seguranca.md)
 - [Roadmap](docs/roadmap.md)
 - [Módulos do sistema](docs/modulos/README.md)
 - [Checklist de validação](docs/checklist-validacao.md)
@@ -46,8 +47,8 @@ A documentação foi organizada no mesmo espírito do projeto IoT do Ramo: visã
 
 As credenciais reais não são versionadas. Antes de executar os apps, configure os arquivos locais:
 
-- Android: copie o `google-services.json` do Firebase para `apps/android/app/` e configure `DOOR_API_BASE_URL` e `DOOR_API_KEY` em `~/.gradle/gradle.properties`, variável de ambiente ou `-P` no Gradle.
-- iOS: copie o `GoogleService-Info.plist` do Firebase para `apps/ios/AppRamoIEEE/` e preencha `DoorAPIBaseURL` e `DoorAPIKey` no `Info.plist` local ou em uma configuração de build.
+- Android: copie o `google-services.json` do Firebase para `apps/android/app/` e configure `DOOR_API_BASE_URL` em `~/.gradle/gradle.properties`, variável de ambiente ou `-P` no Gradle. `DOOR_API_KEY` é opcional e deve ser evitada em produção.
+- iOS: copie o `GoogleService-Info.plist` do Firebase para `apps/ios/AppRamoIEEE/` e preencha `DoorAPIBaseURL` no `Info.plist` local ou em uma configuração de build. `DoorAPIKey` é opcional e deve ser evitada em produção.
 
 Mais detalhes em [docs/configuracao.md](docs/configuracao.md).
 

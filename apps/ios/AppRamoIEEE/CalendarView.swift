@@ -11,6 +11,9 @@ class CalendarManager {
 struct CalendarView: View {
     @EnvironmentObject var viewModel: AppViewModel
     @State private var showAddEvent = false
+    private var canManageContent: Bool {
+        AccessPolicy.canManageContent(viewModel.currentUser?.chapterRoles ?? [:])
+    }
     
     var body: some View {
         List(viewModel.events) { event in
@@ -53,25 +56,27 @@ struct CalendarView: View {
                     .padding(.top, 4)
             }
             .swipeActions(edge: .trailing) {
-                Button(role: .destructive) {
-                    deleteEvent(event)
-                } label: {
-                    Label("Apagar", systemImage: "trash")
+                if canManageContent {
+                    Button(role: .destructive) {
+                        deleteEvent(event)
+                    } label: {
+                        Label("Apagar", systemImage: "trash")
+                    }
                 }
             }
         }
         .navigationTitle("Agenda")
         .toolbar {
-            Button {
-                showAddEvent = true
-            } label: {
-                Image(systemName: "plus")
+            if canManageContent {
+                Button {
+                    showAddEvent = true
+                } label: {
+                    Image(systemName: "plus")
+                }
             }
         }
         .sheet(isPresented: $showAddEvent) {
-            // Passamos os capítulos disponíveis para a tela de criação
-            // Adicionamos "Todos" à lista de cargos que o usuário tem
-            let availableChapters = ["Todos"] + (viewModel.currentUser?.chapterRoles.keys.sorted() ?? [])
+            let availableChapters = AccessPolicy.visibleChapters(viewModel.currentUser?.chapterRoles ?? [:])
             AddEventView(availableChapters: availableChapters)
         }
     }
@@ -92,7 +97,8 @@ struct AddEventView: View {
     @State private var description = ""
     @State private var location = ""
     @State private var date = Date()
-    @State private var selectedChapter = "Todos" // Padrão
+    @State private var endDate = Date().addingTimeInterval(3600)
+    @State private var selectedChapter = AccessPolicy.globalChapter
     @State private var addToCalendar = true
     
     var body: some View {
@@ -116,6 +122,12 @@ struct AddEventView: View {
                 
                 Section(header: Text("Data e Hora")) {
                     DatePicker("Início", selection: $date)
+                        .onChange(of: date) { newDate in
+                            if endDate <= newDate {
+                                endDate = newDate.addingTimeInterval(3600)
+                            }
+                        }
+                    DatePicker("Fim", selection: $endDate, in: date...)
                 }
                 
                 Section {
@@ -143,7 +155,7 @@ struct AddEventView: View {
             "description": description,
             "location": location,
             "startTime": date,
-            "endTime": date.addingTimeInterval(3600), // +1 hora padrão
+            "endTime": endDate,
             "chapter": selectedChapter // Usa a seleção do Picker
         ]
         
@@ -175,7 +187,7 @@ struct AddEventView: View {
         let event = EKEvent(eventStore: store)
         event.title = "[\(selectedChapter)] \(title)" // Adiciona tag ao título no calendário
         event.startDate = date
-        event.endDate = date.addingTimeInterval(3600)
+        event.endDate = endDate
         event.notes = description
         event.location = location
         event.calendar = store.defaultCalendarForNewEvents

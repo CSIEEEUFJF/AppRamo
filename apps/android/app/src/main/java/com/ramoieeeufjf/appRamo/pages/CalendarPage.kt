@@ -42,6 +42,7 @@ data class ChapterEvent(
 fun CalendarPage(
     events: List<ChapterEvent>,
     userChapters: List<String>,
+    canManageContent: Boolean = false,
     onAddEvent: (ChapterEvent) -> Unit,
     onDeleteEvent: (String) -> Unit
 ) {
@@ -50,8 +51,10 @@ fun CalendarPage(
 
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(onClick = { showDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Schedule event")
+            if (canManageContent) {
+                FloatingActionButton(onClick = { showDialog = true }) {
+                    Icon(Icons.Default.Add, contentDescription = "Schedule event")
+                }
             }
         }
     ) { paddingValues ->
@@ -96,6 +99,7 @@ fun CalendarPage(
     selectedEvent?.let {
         EventDetailsDialog(
             event = it,
+            canManageContent = canManageContent,
             onDismiss = { selectedEvent = null },
             onDelete = { eventId -> // Correctly handle the eventId parameter
                 onDeleteEvent(eventId)
@@ -230,7 +234,12 @@ private fun EventDialog(
 }
 
 @Composable
-fun EventDetailsDialog(event: ChapterEvent, onDismiss: () -> Unit, onDelete: (String) -> Unit) {
+fun EventDetailsDialog(
+    event: ChapterEvent,
+    canManageContent: Boolean,
+    onDismiss: () -> Unit,
+    onDelete: (String) -> Unit
+) {
     Dialog(onDismissRequest = onDismiss) {
         Surface(shape = MaterialTheme.shapes.large, modifier = Modifier.padding(16.dp)) {
             Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -245,13 +254,15 @@ fun EventDetailsDialog(event: ChapterEvent, onDismiss: () -> Unit, onDelete: (St
                 Text(text = "Fim: ${event.endTime?.let { dateFormat.format(it) } ?: "N/A"}")
                 Spacer(modifier = Modifier.height(16.dp))
                 Row {
-                    Button(
-                        onClick = { onDelete(event.id) },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                    ) {
-                        Text("Delete")
+                    if (canManageContent) {
+                        Button(
+                            onClick = { onDelete(event.id) },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                        ) {
+                            Text("Delete")
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
                     Button(onClick = onDismiss) {
                         Text("Fechar")
                     }
@@ -269,7 +280,7 @@ fun CalendarPageWithEventsPreview() {
         ChapterEvent(id = "2", title = "Project Deadline", location = "Online", chapter = "RAS", startTime = Date(), endTime = Date())
     )
     REIEEEUFJFTheme {
-        CalendarPage(events = sampleEvents, userChapters = listOf("RAS", "IAS"), onAddEvent = {}, onDeleteEvent = {})
+        CalendarPage(events = sampleEvents, userChapters = listOf("RAS", "IAS"), canManageContent = true, onAddEvent = {}, onDeleteEvent = {})
     }
 }
 

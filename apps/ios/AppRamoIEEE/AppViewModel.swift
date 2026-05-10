@@ -1,7 +1,7 @@
 import SwiftUI
 import FirebaseAuth
 import FirebaseFirestore
-import FirebaseStorage // Necessário para upload de foto
+import FirebaseStorage
 
 @MainActor
 class AppViewModel: ObservableObject {
@@ -41,7 +41,7 @@ class AppViewModel: ObservableObject {
     }
     
     // --- ATUALIZAÇÃO DE PERFIL ---
-    func updateUserProfile(name: String, phoneNumber: String, profilePictureUrl: String?, chapterRoles: [String: String], completion: @escaping (Bool) -> Void) {
+    func updateUserProfile(name: String, phoneNumber: String, profilePictureUrl: String?, requestedChapterRoles: [String: String], completion: @escaping (Bool) -> Void) {
         guard let uid = currentUser?.id else {
             completion(false)
             return
@@ -51,20 +51,33 @@ class AppViewModel: ObservableObject {
             "name": name,
             "phoneNumber": phoneNumber,
             "profilePictureUrl": profilePictureUrl ?? "",
-            "chapterRoles": chapterRoles
+            "requestedChapterRoles": requestedChapterRoles
         ]
         
-        db.collection("users").document(uid).updateData(updates) { error in
+        db.collection("users").document(uid).setData(updates, merge: true) { error in
             if let error = error {
                 print("Erro ao atualizar: \(error.localizedDescription)")
                 completion(false)
             } else {
-                // Atualiza localmente
+                let approvedRoles = self.currentUser?.chapterRoles ?? [:]
+                var publicProfile: [String: Any] = [
+                    "name": name,
+                    "chapterRoles": approvedRoles
+                ]
+                if let profilePictureUrl, !profilePictureUrl.isEmpty {
+                    publicProfile["profilePictureUrl"] = profilePictureUrl
+                }
+                self.db.collection("publicProfiles").document(uid).setData(publicProfile) { publicError in
+                    if let publicError = publicError {
+                        print("Erro ao atualizar perfil público: \(publicError.localizedDescription)")
+                    }
+                }
+
                 self.currentUser?.name = name
                 self.currentUser?.phoneNumber = phoneNumber
                 self.currentUser?.profilePictureUrl = profilePictureUrl
-                self.currentUser?.chapterRoles = chapterRoles
-                self.fetchEventsAndTasks() // Recarrega permissões/listas
+                self.currentUser?.requestedChapterRoles = requestedChapterRoles
+                self.fetchEventsAndTasks()
                 completion(true)
             }
         }
@@ -108,8 +121,7 @@ class AppViewModel: ObservableObject {
         eventsListener?.remove()
         tasksListener?.remove()
         
-        // Adiciona "Todos" e "Geral" para garantir visibilidade
-        let chapters = Array(userRoles.keys) + ["Todos", "Geral"]
+        let chapters = AccessPolicy.visibleChapters(userRoles)
         
         // Buscar Eventos
         eventsListener = db.collection("events")

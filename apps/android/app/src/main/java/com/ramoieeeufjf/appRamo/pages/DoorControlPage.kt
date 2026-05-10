@@ -21,6 +21,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,6 +34,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.google.firebase.auth.FirebaseAuth
 import com.ramoieeeufjf.appRamo.BuildConfig
 import com.ramoieeeufjf.appRamo.R
 import io.ktor.client.HttpClient
@@ -50,6 +52,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -153,36 +156,20 @@ fun DoorControlPage() {
 
     fun endpoint(path: String) = "$API_BASE_URL$path"
 
+    suspend fun authHeader(): Pair<String, String> {
+        if (API_KEY.isNotBlank()) {
+            return "X-API-KEY" to API_KEY
+        }
+
+        val token = FirebaseAuth.getInstance().currentUser?.getIdToken(false)?.await()?.token
+        require(!token.isNullOrBlank()) {
+            "Configure DOOR_API_KEY para acesso direto ou use uma API intermediária com Firebase Auth."
+        }
+        return "Authorization" to "Bearer $token"
+    }
+
     fun apiError(prefix: String, error: String?): String {
         return "$prefix: ${error ?: "resposta inesperada"}"
-    }
-
-    fun parseProfileIndices(): List<Int> {
-        val tokens = profileIndices.split(Regex("[,;\\s]+")).filter { it.isNotBlank() }
-        if (tokens.isEmpty()) {
-            throw IllegalArgumentException("Informe ao menos um índice de perfil.")
-        }
-        return tokens.map { token ->
-            val value = token.toIntOrNull()
-            if (value == null || value < 0) {
-                throw IllegalArgumentException("Use apenas índices de perfil válidos.")
-            }
-            value
-        }
-    }
-
-    fun parseWeekdays(): List<Int>? {
-        val tokens = weekdays.split(Regex("[,;\\s]+")).filter { it.isNotBlank() }
-        if (tokens.isEmpty()) {
-            return null
-        }
-        return tokens.map { token ->
-            val value = token.toIntOrNull()
-            if (value == null || value !in 0..6) {
-                throw IllegalArgumentException("Dias da semana devem ficar entre 0 e 6.")
-            }
-            value
-        }
     }
 
     fun refreshMeetingStatus() {
@@ -190,8 +177,9 @@ fun DoorControlPage() {
             try {
                 loading = true
                 errorMsg = null
+                val (headerName, headerValue) = authHeader()
                 val response: MeetingStatusResponse = client.get(endpoint("/api/meeting/status")) {
-                    header("X-API-KEY", API_KEY)
+                    header(headerName, headerValue)
                 }.body()
                 if (response.ok) {
                     meetingStatus = response
@@ -212,8 +200,9 @@ fun DoorControlPage() {
                 loading = true
                 errorMsg = null
                 successMsg = null
+                val (headerName, headerValue) = authHeader()
                 val response: DoorApiResponse = client.post(endpoint("/api/door/open")) {
-                    header("X-API-KEY", API_KEY)
+                    header(headerName, headerValue)
                 }.body()
                 if (response.ok) {
                     successMsg = response.message ?: "Comando de abertura enviado."
@@ -231,16 +220,14 @@ fun DoorControlPage() {
     fun scheduleMeeting() {
         coroutineScope.launch {
             try {
-                val minutes = delayMinutes.toLongOrNull()
-                if (minutes == null || minutes <= 0 || minutes > 1440) {
-                    throw IllegalArgumentException("O atraso deve ficar entre 1 e 1440 minutos.")
-                }
+                val minutes = DoorInputParser.parseDelayMinutes(delayMinutes)
+                val (headerName, headerValue) = authHeader()
 
                 val request = MeetingScheduleRequest(
                     delaySeconds = minutes * 60,
-                    profileIndices = parseProfileIndices(),
+                    profileIndices = DoorInputParser.parseProfileIndices(profileIndices),
                     recurrence = recurrence,
-                    weekdays = if (recurrence == "weekly") parseWeekdays() else null
+                    weekdays = if (recurrence == "weekly") DoorInputParser.parseWeekdays(weekdays) else null
                 )
 
                 loading = true
@@ -248,7 +235,7 @@ fun DoorControlPage() {
                 successMsg = null
                 val response: MeetingScheduleResponse = client.post(endpoint("/api/meeting/schedule")) {
                     contentType(ContentType.Application.Json)
-                    header("X-API-KEY", API_KEY)
+                    header(headerName, headerValue)
                     setBody(request)
                 }.body()
                 if (response.ok) {
@@ -268,22 +255,20 @@ fun DoorControlPage() {
     fun cancelMeeting() {
         coroutineScope.launch {
             try {
-                val id = cancelId.trim().takeIf { it.isNotEmpty() }?.toLongOrNull()
-                if (cancelId.isNotBlank() && id == null) {
-                    throw IllegalArgumentException("ID de cancelamento inválido.")
-                }
+                val id = DoorInputParser.parseCancelId(cancelId)
+                val (headerName, headerValue) = authHeader()
 
                 loading = true
                 errorMsg = null
                 successMsg = null
                 val response: MeetingCancelResponse = if (id == null) {
                     client.post(endpoint("/api/meeting/cancel")) {
-                        header("X-API-KEY", API_KEY)
+                        header(headerName, headerValue)
                     }.body()
                 } else {
                     client.post(endpoint("/api/meeting/cancel")) {
                         contentType(ContentType.Application.Json)
-                        header("X-API-KEY", API_KEY)
+                        header(headerName, headerValue)
                         setBody(MeetingCancelRequest(id))
                     }.body()
                 }
@@ -304,6 +289,12 @@ fun DoorControlPage() {
 
     LaunchedEffect(Unit) {
         refreshMeetingStatus()
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            client.close()
+        }
     }
 
     Column(

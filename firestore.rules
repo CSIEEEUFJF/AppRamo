@@ -1,0 +1,148 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function userPath(uid) {
+      return /databases/$(database)/documents/users/$(uid);
+    }
+
+    function hasUserDoc(uid) {
+      return exists(userPath(uid));
+    }
+
+    function userData(uid) {
+      return get(userPath(uid)).data;
+    }
+
+    function currentUserData() {
+      return userData(request.auth.uid);
+    }
+
+    function hasCurrentRoles() {
+      return signedIn()
+        && hasUserDoc(request.auth.uid)
+        && "chapterRoles" in currentUserData().keys()
+        && currentUserData().chapterRoles is map;
+    }
+
+    function currentRoles() {
+      return hasCurrentRoles() ? currentUserData().chapterRoles : {};
+    }
+
+    function roleFor(chapter) {
+      return currentRoles()[chapter];
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && hasUserDoc(request.auth.uid)
+        && "isAdmin" in currentUserData().keys()
+        && currentUserData().isAdmin == true;
+    }
+
+    function hasChapter(chapter) {
+      return signedIn()
+        && (chapter == "Todos" || roleFor(chapter) is string);
+    }
+
+    function privilegedRole(role) {
+      return role in [
+        "Admin",
+        "Administrador",
+        "Diretoria",
+        "Presidente",
+        "Vice Presidente",
+        "Vice-Presidente",
+        "Tesoureiro",
+        "Webmaster"
+      ];
+    }
+
+    function canManageChapter(chapter) {
+      return signedIn()
+        && (
+          isAdmin()
+          || currentRoles()["Diretoria"] is string
+          || (chapter != "Todos" && privilegedRole(roleFor(chapter)))
+        );
+    }
+
+    function approvedRolesFor(uid) {
+      return hasUserDoc(uid)
+        && "chapterRoles" in userData(uid).keys()
+        && userData(uid).chapterRoles is map
+        ? userData(uid).chapterRoles
+        : {};
+    }
+
+    match /users/{userId} {
+      allow read: if signedIn() && request.auth.uid == userId;
+
+      allow create: if signedIn()
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly([
+          "name",
+          "email",
+          "phoneNumber",
+          "birthDate",
+          "profilePictureUrl",
+          "requestedChapterRoles",
+          "chapterRoles"
+        ])
+        && !("isAdmin" in request.resource.data.keys())
+        && (
+          !("chapterRoles" in request.resource.data.keys())
+          || request.resource.data.chapterRoles == {}
+        );
+
+      allow update: if signedIn()
+        && request.auth.uid == userId
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          "chapterRoles",
+          "isAdmin"
+        ]);
+
+      allow delete: if false;
+    }
+
+    match /publicProfiles/{userId} {
+      allow read: if signedIn();
+
+      allow create, update: if signedIn()
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly([
+          "name",
+          "profilePictureUrl",
+          "chapterRoles"
+        ])
+        && request.resource.data.keys().hasAll(["name", "chapterRoles"])
+        && request.resource.data.chapterRoles == approvedRolesFor(userId);
+
+      allow delete: if false;
+    }
+
+    match /events/{eventId} {
+      allow read: if signedIn() && hasChapter(resource.data.chapter);
+      allow create: if canManageChapter(request.resource.data.chapter);
+      allow update: if canManageChapter(resource.data.chapter)
+        && canManageChapter(request.resource.data.chapter);
+      allow delete: if canManageChapter(resource.data.chapter);
+    }
+
+    match /tasks/{taskId} {
+      allow read: if signedIn() && hasChapter(resource.data.chapter);
+      allow create: if canManageChapter(request.resource.data.chapter);
+      allow update: if canManageChapter(resource.data.chapter)
+        && canManageChapter(request.resource.data.chapter);
+      allow delete: if canManageChapter(resource.data.chapter);
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

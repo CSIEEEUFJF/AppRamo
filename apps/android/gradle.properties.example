@@ -3,4 +3,4 @@
 # Nunca versione chaves reais.
 
 DOOR_API_BASE_URL=https://ramoieeeufjf.dpdns.org
-DOOR_API_KEY=preencher-localmente
+DOOR_API_KEY=

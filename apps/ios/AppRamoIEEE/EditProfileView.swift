@@ -40,11 +40,12 @@ struct EditProfileView: View {
     
     init(currentUser: UserProfile) {
         _name = State(initialValue: currentUser.name)
-        _phoneNumber = State(initialValue: currentUser.phoneNumber)
+        _phoneNumber = State(initialValue: currentUser.phoneNumber ?? "")
         _profilePictureUrl = State(initialValue: currentUser.profilePictureUrl ?? "")
         
         // Converte o dicionário [String: String] para nosso array editável
-        let entries = (currentUser.chapterRoles ?? [:]).map { RoleEntry(chapter: $0.key, role: $0.value) }
+        let requestedRoles = currentUser.requestedChapterRoles ?? currentUser.chapterRoles
+        let entries = requestedRoles.map { RoleEntry(chapter: $0.key, role: $0.value) }
         _roleEntries = State(initialValue: entries)
     }
     
@@ -210,7 +211,7 @@ struct EditProfileView: View {
             name: name,
             phoneNumber: phoneNumber,
             profilePictureUrl: profilePictureUrl,
-            chapterRoles: newRoles
+            requestedChapterRoles: newRoles
         ) { success in
             isLoading = false
             if success {

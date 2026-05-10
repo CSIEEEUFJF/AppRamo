@@ -4,6 +4,9 @@ import FirebaseFirestore
 struct TasksView: View {
     @EnvironmentObject var viewModel: AppViewModel
     @State private var showAddDialog = false
+    private var canManageContent: Bool {
+        AccessPolicy.canManageContent(viewModel.currentUser?.chapterRoles ?? [:])
+    }
     
     var body: some View {
         List {
@@ -24,6 +27,7 @@ struct TasksView: View {
                                 .foregroundColor((task.completed ?? false) ? .green : .gray)
                         }
                         .buttonStyle(PlainButtonStyle()) // Impede que o clique selecione a linha toda
+                        .disabled(!canManageContent)
                         
                         VStack(alignment: .leading) {
                             Text(task.title)
@@ -46,10 +50,12 @@ struct TasksView: View {
                         }
                     }
                     .swipeActions(edge: .trailing) {
-                        Button(role: .destructive) {
-                            deleteTask(task)
-                        } label: {
-                            Label("Apagar", systemImage: "trash")
+                        if canManageContent {
+                            Button(role: .destructive) {
+                                deleteTask(task)
+                            } label: {
+                                Label("Apagar", systemImage: "trash")
+                            }
                         }
                     }
                 }
@@ -57,12 +63,14 @@ struct TasksView: View {
         }
         .navigationTitle("Tarefas")
         .toolbar {
-            Button(action: { showAddDialog = true }) {
-                Image(systemName: "plus")
+            if canManageContent {
+                Button(action: { showAddDialog = true }) {
+                    Image(systemName: "plus")
+                }
             }
         }
         .sheet(isPresented: $showAddDialog) {
-            let userChapters = viewModel.currentUser?.chapterRoles.keys.sorted() ?? []
+            let userChapters = AccessPolicy.visibleChapters(viewModel.currentUser?.chapterRoles ?? [:])
             AddTaskView(chapters: userChapters)
         }
     }
@@ -100,7 +108,7 @@ struct AddTaskView: View {
                 
                 Section(header: Text("Capítulo")) {
                     if chapters.isEmpty {
-                        Text("Geral")
+                        Text(AccessPolicy.globalChapter)
                     } else {
                         Picker("Selecione", selection: $selectedChapter) {
                             ForEach(chapters, id: \.self) { chapter in
@@ -131,7 +139,7 @@ struct AddTaskView: View {
     }
     
     func saveTask() {
-        let chapterToSave = selectedChapter.isEmpty ? (chapters.first ?? "Geral") : selectedChapter
+        let chapterToSave = selectedChapter.isEmpty ? (chapters.first ?? AccessPolicy.globalChapter) : selectedChapter
         
         let newTask: [String: Any] = [
             "title": title,

@@ -11,11 +11,11 @@ Pré-requisitos:
 Passos:
 
 1. Copie o arquivo Firebase `google-services.json` para `apps/android/app/google-services.json`.
-2. Configure as chaves da API da placa em `~/.gradle/gradle.properties`, variáveis de ambiente ou parâmetros `-P` do Gradle:
+2. Configure a URL da API da porta em `~/.gradle/gradle.properties`, variáveis de ambiente ou parâmetros `-P` do Gradle. A chave direta é opcional e deve ser evitada em produção:
 
 ```properties
 DOOR_API_BASE_URL=https://ramoieeeufjf.dpdns.org
-DOOR_API_KEY=preencher-localmente
+DOOR_API_KEY=
 ```
 
 3. Execute:
@@ -39,7 +39,7 @@ Passos:
 1. Copie o arquivo Firebase `GoogleService-Info.plist` para `apps/ios/AppRamoIEEE/GoogleService-Info.plist`.
 2. Abra `apps/ios/AppRamoIEEE.xcodeproj` no Xcode.
 3. Resolva os pacotes Swift quando o Xcode solicitar.
-4. Preencha `DoorAPIBaseURL` e `DoorAPIKey` no `Info.plist` local ou configure essas chaves via build settings.
+4. Preencha `DoorAPIBaseURL` no `Info.plist` local ou configure via build settings. `DoorAPIKey` deve ficar vazia quando a API intermediária validar Firebase ID Token.
 
 ## Firebase
 
@@ -52,6 +52,7 @@ Serviços necessários:
 Coleções mínimas:
 
 - `users`
+- `publicProfiles`
 - `tasks`
 - `events`
 
@@ -60,10 +61,14 @@ Coleções mínimas:
 - `events`: filtro `chapter in (...)` e ordenação por `startTime` ascendente.
 - `tasks`: filtro `chapter in (...)`, ordenação por `completed` e depois por `title`.
 
-Regras de segurança devem ser revisadas antes de produção. O início do projeto pode usar regras restritas a usuários autenticados, mas permissões por capítulo e cargo devem ser implementadas antes de liberar operações administrativas.
+As regras versionadas em `firestore.rules` e `storage.rules` devem ser publicadas antes de produção:
+
+```powershell
+firebase deploy --only firestore:rules,storage
+```
 
 ## Observações de migração
 
 - O Android de referência usa `profile_pictures/{uid}` no Storage; o iOS usa `profile_images/{uid}.jpg`. Recomenda-se padronizar esse caminho.
 - O Android contém duas implementações de telas de login/cadastro em pacotes diferentes. Recomenda-se manter apenas as telas realmente usadas na navegação.
-- O controle da sala depende de uma chave de API. Ela deve ficar fora do Git e, idealmente, ser substituída por autenticação ligada ao usuário.
+- O controle da sala deve preferir uma API intermediária autenticada por Firebase ID Token. A chave direta da porta deve ficar fora do Git e ser tratada apenas como compatibilidade local/legada.

@@ -23,7 +23,8 @@ Para documentação operacional por área, veja [modulos/README.md](modulos/READ
 
 - Permitir cadastro de nome, data de nascimento, e-mail, senha, telefone, capítulos, cargos e foto de perfil.
 - Criar a conta no Firebase Authentication quando o usuário ainda não existir.
-- Salvar os dados do usuário na coleção `users` do Firestore.
+- Salvar dados privados em `users` e dados públicos sanitizados em `publicProfiles`.
+- Salvar capítulos/cargos escolhidos pelo usuário em `requestedChapterRoles`; `chapterRoles` representa apenas cargos aprovados.
 - Fazer upload da foto de perfil para Firebase Storage.
 - Reabrir a tela de cadastro em modo de edição quando o usuário já estiver autenticado.
 - Desabilitar edição de e-mail e senha no modo de edição.
@@ -32,7 +33,7 @@ Para documentação operacional por área, veja [modulos/README.md](modulos/READ
 
 - Exibir saudação com nome do usuário autenticado.
 - Exibir foto de perfil ou imagem padrão.
-- Navegar para perfil, tarefas, calendário, controle da sala e membros do Ramo.
+- Navegar para perfil, tarefas, calendário, membros do Ramo e, quando permitido, controle da sala.
 - Exibir identidade visual do IEEE e capítulos usados no app de referência.
 
 ### Perfil
@@ -43,20 +44,20 @@ Para documentação operacional por área, veja [modulos/README.md](modulos/READ
 
 ### Membros do Ramo
 
-- Carregar membros em tempo real a partir da coleção `users`.
+- Carregar membros em tempo real a partir da coleção `publicProfiles`.
 - Agrupar membros por capítulo.
 - Exibir foto e nome em grade.
-- Ao selecionar um membro, exibir nome, cargo no capítulo selecionado e telefone.
+- Ao selecionar um membro, exibir nome, capítulo e cargo aprovado, sem telefone/e-mail.
 
 ### Tarefas do capítulo
 
 - Carregar tarefas em tempo real a partir da coleção `tasks`.
 - Filtrar tarefas por capítulos do usuário e `Todos`.
 - Ordenar por conclusão e título.
-- Criar tarefa com título, descrição e capítulo.
-- Marcar tarefa como concluída ou pendente.
+- Criar tarefa com título, descrição e capítulo quando o usuário tiver cargo aprovado para gestão.
+- Marcar tarefa como concluída ou pendente quando o usuário tiver cargo aprovado para gestão.
 - Abrir detalhes da tarefa.
-- Excluir tarefa.
+- Excluir tarefa quando o usuário tiver cargo aprovado para gestão.
 - Exibir estado vazio quando não houver tarefas.
 
 ### Calendário do capítulo
@@ -64,21 +65,22 @@ Para documentação operacional por área, veja [modulos/README.md](modulos/READ
 - Carregar eventos em tempo real a partir da coleção `events`.
 - Filtrar eventos por capítulos do usuário e `Todos`.
 - Ordenar por data/hora de início.
-- Criar evento com título, descrição, local, data/hora de início, data/hora de fim e capítulo.
+- Criar evento com título, descrição, local, data/hora de início, data/hora de fim e capítulo quando o usuário tiver cargo aprovado para gestão.
 - Abrir a agenda do dispositivo para salvar o evento localmente.
 - Abrir detalhes do evento.
-- Excluir evento.
+- Excluir evento quando o usuário tiver cargo aprovado para gestão.
 - Exibir estado vazio quando não houver eventos.
 
 ### Controle da sala
 
-- Abrir a porta usando `POST /api/door/open` com o header `X-API-KEY`.
+- Abrir a porta usando `POST /api/door/open` com `X-API-KEY` local ou `Authorization: Bearer <Firebase ID Token>`.
 - Consultar o modo reunião usando `GET /api/meeting/status`.
 - Agendar modo reunião usando `POST /api/meeting/schedule`.
 - Cancelar agendamentos de reunião usando `POST /api/meeting/cancel`.
 - Exibir estado ativo/inativo do modo reunião.
 - Exibir agendamentos pendentes e último status informado pela placa.
 - Exibir estado de carregamento e mensagens de erro.
+- Exibir o módulo apenas para usuários com cargo aprovado para controle da sala.
 
 ## Requisitos técnicos mínimos
 
@@ -94,7 +96,7 @@ Para documentação operacional por área, veja [modulos/README.md](modulos/READ
 
 - Um membro consegue criar conta, autenticar, ver seu perfil e sair.
 - Um membro autenticado vê apenas tarefas e eventos dos seus capítulos e globais.
-- Um membro consegue criar, concluir e excluir tarefas.
-- Um membro consegue criar e excluir eventos.
+- Um usuário com cargo aprovado consegue criar, concluir e excluir tarefas.
+- Um usuário com cargo aprovado consegue criar e excluir eventos.
 - A lista de membros reflete atualizações do Firestore sem reiniciar o app.
-- O controle da sala consegue abrir a porta e gerenciar agendamentos de reunião quando a chave da API está configurada.
+- O controle da sala consegue abrir a porta e gerenciar agendamentos de reunião quando há chave local ou API intermediária validando Firebase ID Token.

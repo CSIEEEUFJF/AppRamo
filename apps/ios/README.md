@@ -14,7 +14,7 @@ Base importada do projeto `AppRamoIEEEUFJF_iOS`, com ajustes iniciais para uso d
 ## Configuração
 
 1. Adicione `AppRamoIEEE/GoogleService-Info.plist`.
-2. Configure `DoorAPIBaseURL` e `DoorAPIKey` no `Info.plist` local ou por build setting.
+2. Configure `DoorAPIBaseURL` no `Info.plist` local ou por build setting. Deixe `DoorAPIKey` vazia quando a API intermediária validar Firebase ID Token.
 3. Abra `AppRamoIEEE.xcodeproj` no Xcode e aguarde a resolução dos Swift Packages.
 
 ## Execução

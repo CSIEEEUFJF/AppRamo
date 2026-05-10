@@ -4,10 +4,12 @@ import FirebaseFirestore
 struct UserProfile: Identifiable, Codable {
     @DocumentID var id: String?
     var name: String
-    var phoneNumber: String
+    var phoneNumber: String?
     var profilePictureUrl: String?
     var email: String?
+    var birthDate: Date?
     var chapterRoles: [String: String] = [:]
+    var requestedChapterRoles: [String: String]?
 }
 
 struct ChapterEvent: Identifiable, Codable {

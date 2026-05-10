@@ -10,11 +10,6 @@
 	<string></string>
 	<key>DoorRelayBaseURL</key>
 	<string>https://ramoieeeufjf.dpdns.org</string>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-	</dict>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>Precisamos de acesso para salvar os eventos do Ramo na sua agenda.</string>
 	<key>NSCalendarsWriteOnlyAccessUsageDescription</key>

@@ -21,6 +21,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.toObject
 import com.ramoieeeufjf.appRamo.R
+import com.ramoieeeufjf.appRamo.security.AccessPolicy
 import java.util.SortedMap
 
 // Updated data class for the new chapter roles structure
@@ -42,19 +43,17 @@ fun MembersPage() {
     val groupedMembers: SortedMap<String, List<UserProfile>> by remember(allUsers) {
         val map = mutableMapOf<String, MutableList<UserProfile>>()
         allUsers.forEach { user ->
-            user.chapterRoles.keys.forEach { chapter ->
-                if (chapter != "Todos") {
-                    map.getOrPut(chapter) { mutableListOf() }.add(user)
-                }
+            AccessPolicy.publicChapterLabels(user.chapterRoles).forEach { chapter ->
+                map.getOrPut(chapter) { mutableListOf() }.add(user)
             }
         }
         mutableStateOf(map.toSortedMap())
     }
 
     // Using a snapshot listener for real-time updates.
-    LaunchedEffect(Unit) {
+    DisposableEffect(Unit) {
         val db = FirebaseFirestore.getInstance()
-        db.collection("users").addSnapshotListener { snapshot, e ->
+        val listener = db.collection("publicProfiles").addSnapshotListener { snapshot, e ->
             if (e != null) {
                 isLoading = false
                 return@addSnapshotListener
@@ -65,6 +64,9 @@ fun MembersPage() {
                 }
             }
             isLoading = false
+        }
+        onDispose {
+            listener.remove()
         }
     }
 
@@ -102,9 +104,11 @@ fun MembersPage() {
 
                     Text(text = selectedUser!!.name, style = MaterialTheme.typography.headlineSmall)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "Cargo em $clickedChapter: ${roleInChapter ?: ""}")
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "Telefone: ${selectedUser!!.phoneNumber}")
+                    Text(text = "Capítulo: $clickedChapter")
+                    if (!roleInChapter.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(text = "Cargo: $roleInChapter")
+                    }
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(onClick = { selectedUser = null }, modifier = Modifier.align(Alignment.End)) {
                         Text("Fechar")

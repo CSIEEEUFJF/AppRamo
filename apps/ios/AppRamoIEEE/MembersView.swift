@@ -3,15 +3,35 @@ import FirebaseFirestore
 import FirebaseStorage
 import SDWebImageSwiftUI
 
+private struct MemberGroup: Identifiable {
+    let chapter: String
+    let members: [UserProfile]
+
+    var id: String { chapter }
+}
+
 struct MembersView: View {
     @State private var users: [UserProfile] = []
     @State private var selectedUser: UserProfile?
+    @State private var listener: ListenerRegistration?
     
     let columns = [
         GridItem(.flexible()),
         GridItem(.flexible()),
         GridItem(.flexible())
     ]
+
+    private var groupedUsers: [MemberGroup] {
+        var groups: [String: [UserProfile]] = [:]
+        for user in users {
+            for chapter in AccessPolicy.publicChapterLabels(user.chapterRoles) {
+                groups[chapter, default: []].append(user)
+            }
+        }
+        return groups.keys.sorted().map { chapter in
+            MemberGroup(chapter: chapter, members: groups[chapter, default: []].sorted { $0.name < $1.name })
+        }
+    }
     
     var body: some View {
         ScrollView {
@@ -24,47 +44,54 @@ struct MembersView: View {
                 }
                 .padding(.top, 50)
             } else {
-                LazyVGrid(columns: columns, spacing: 20) {
-                    ForEach(users) { user in
-                        VStack {
-                            // FOTO DE PERFIL
-                            ProfileImageView(urlString: user.profilePictureUrl)
-                                .frame(width: 80, height: 80)
-                                .onTapGesture {
-                                    selectedUser = user
+                LazyVStack(alignment: .leading, spacing: 24) {
+                    ForEach(groupedUsers) { group in
+                        Text(group.chapter)
+                            .font(.headline)
+                            .padding(.horizontal)
+
+                        LazyVGrid(columns: columns, spacing: 20) {
+                            ForEach(group.members) { user in
+                                VStack {
+                                    ProfileImageView(urlString: user.profilePictureUrl)
+                                        .frame(width: 80, height: 80)
+                                        .onTapGesture {
+                                            selectedUser = user
+                                        }
+
+                                    Text(user.name)
+                                        .font(.caption)
+                                        .bold()
+                                        .lineLimit(1)
+                                        .multilineTextAlignment(.center)
+
+                                    if let role = user.chapterRoles[group.chapter] {
+                                        Text(role)
+                                            .font(.caption2)
+                                            .foregroundColor(.secondary)
+                                            .lineLimit(1)
+                                            .minimumScaleFactor(0.8)
+                                    } else {
+                                        Text("Membro")
+                                            .font(.caption2)
+                                            .foregroundColor(.gray.opacity(0.5))
+                                    }
                                 }
-                            
-                            // NOME
-                            Text(user.name)
-                                .font(.caption)
-                                .bold()
-                                .lineLimit(1)
-                                .multilineTextAlignment(.center)
-                            
-                            // LEGENDA: CAPÍTULO - CARGO
-                            // Correção: Acessamos diretamente pois não é opcional no seu Model
-                            if let firstChapter = user.chapterRoles.keys.sorted().first,
-                               let role = user.chapterRoles[firstChapter] {
-                                
-                                Text("\(firstChapter) - \(role)")
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.8)
-                            } else {
-                                Text("Membro")
-                                    .font(.caption2)
-                                    .foregroundColor(.gray.opacity(0.5))
                             }
                         }
+                        .padding(.horizontal)
                     }
                 }
-                .padding()
+                .padding(.vertical)
             }
         }
         .navigationTitle("Membros")
         .onAppear {
             fetchUsers()
+        }
+        .onDisappear {
+            listener?.remove()
+            listener = nil
         }
         .sheet(item: $selectedUser) { user in
             MemberDetailPopup(user: user)
@@ -72,9 +99,12 @@ struct MembersView: View {
     }
     
     func fetchUsers() {
-        Firestore.firestore().collection("users").getDocuments { snapshot, _ in
+        listener?.remove()
+        listener = Firestore.firestore().collection("publicProfiles").addSnapshotListener { snapshot, _ in
             guard let docs = snapshot?.documents else { return }
-            self.users = docs.compactMap { try? $0.data(as: UserProfile.self) }
+            DispatchQueue.main.async {
+                self.users = docs.compactMap { try? $0.data(as: UserProfile.self) }
+            }
         }
     }
 }
@@ -154,9 +184,9 @@ struct MemberDetailPopup: View {
                             .bold()
                             .multilineTextAlignment(.center)
                         
-                        if let email = user.email {
-                            Text(email).font(.subheadline).foregroundColor(.gray)
-                        }
+                        Text("Perfil público")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
                     }
                     
                     Divider().padding(.horizontal)
@@ -184,15 +214,6 @@ struct MemberDetailPopup: View {
                     }
                     .padding(.horizontal)
                     
-                    if !user.phoneNumber.isEmpty {
-                        HStack {
-                            Image(systemName: "phone.fill").foregroundColor(.green)
-                            Text(user.phoneNumber)
-                        }
-                        .padding()
-                        .background(Color.green.opacity(0.1))
-                        .cornerRadius(10)
-                    }
                 }
             }
             .navigationTitle("Detalhes")

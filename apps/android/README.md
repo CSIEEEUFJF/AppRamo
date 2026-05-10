@@ -17,14 +17,14 @@ Base importada do projeto `AppRamoIEEEUFJF_Android`, com ajustes iniciais para u
 ## Configuração
 
 1. Adicione `app/google-services.json`.
-2. Configure as propriedades locais da API da placa:
+2. Configure as propriedades locais da API da porta:
 
 ```properties
 DOOR_API_BASE_URL=https://ramoieeeufjf.dpdns.org
-DOOR_API_KEY=preencher-localmente
+DOOR_API_KEY=
 ```
 
-Essas propriedades podem ficar em `~/.gradle/gradle.properties`, variáveis de ambiente ou parâmetros `-P` do Gradle.
+Essas propriedades podem ficar em `~/.gradle/gradle.properties`, variáveis de ambiente ou parâmetros `-P` do Gradle. Deixe `DOOR_API_KEY` vazia quando a API intermediária validar Firebase ID Token.
 
 ## Build
 

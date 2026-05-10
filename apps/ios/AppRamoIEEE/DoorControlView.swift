@@ -1,14 +1,5 @@
 import SwiftUI
-
-class InsecureDelegate: NSObject, URLSessionDelegate {
-    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
-        if let trust = challenge.protectionSpace.serverTrust {
-            completionHandler(.useCredential, URLCredential(trust: trust))
-        } else {
-            completionHandler(.performDefaultHandling, nil)
-        }
-    }
-}
+import FirebaseAuth
 
 struct DoorControlView: View {
     private let baseURL =
@@ -35,7 +26,7 @@ struct DoorControlView: View {
         config.timeoutIntervalForRequest = 8
         config.waitsForConnectivity = false
         config.requestCachePolicy = .reloadIgnoringLocalCacheData
-        return URLSession(configuration: config, delegate: InsecureDelegate(), delegateQueue: nil)
+        return URLSession(configuration: config)
     }()
 
     var body: some View {
@@ -198,17 +189,41 @@ struct DoorControlView: View {
         return URL(string: "\(root)\(path)")
     }
 
-    private func makeRequest(path: String, method: String, body: Data? = nil) -> URLRequest? {
-        guard let url = endpoint(path) else { return nil }
+    private func makeRequest(path: String, method: String, body: Data? = nil, completion: @escaping (Result<URLRequest, Error>) -> Void) {
+        guard let url = endpoint(path) else {
+            completion(.failure(AppRamoDoorError.message("URL inválida.")))
+            return
+        }
 
         var request = URLRequest(url: url)
         request.httpMethod = method
-        request.setValue(apiKey, forHTTPHeaderField: "X-API-KEY")
         if let body = body {
             request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
             request.httpBody = body
         }
-        return request
+        if !apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            request.setValue(apiKey, forHTTPHeaderField: "X-API-KEY")
+            completion(.success(request))
+            return
+        }
+
+        guard let user = Auth.auth().currentUser else {
+            completion(.failure(AppRamoDoorError.message("Faça login para controlar a sala.")))
+            return
+        }
+
+        user.getIDToken { token, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            guard let token, !token.isEmpty else {
+                completion(.failure(AppRamoDoorError.message("Não foi possível obter o token de autenticação.")))
+                return
+            }
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            completion(.success(request))
+        }
     }
 
     private func decodeResponse<T: Decodable>(_ type: T.Type, data: Data?, response: URLResponse?, error: Error?, completion: @escaping (Result<T, Error>) -> Void) {
@@ -239,52 +254,70 @@ struct DoorControlView: View {
     }
 
     private func openDoor() {
-        guard let request = makeRequest(path: "/api/door/open", method: "POST") else { return }
         loading = true
         errorMessage = nil
         successMessage = nil
 
-        session.dataTask(with: request) { data, response, error in
-            decodeResponse(DoorAPIResponse.self, data: data, response: response, error: error) { result in
+        makeRequest(path: "/api/door/open", method: "POST") { requestResult in
+            switch requestResult {
+            case .failure(let error):
                 DispatchQueue.main.async {
                     loading = false
-                    switch result {
-                    case .success(let payload):
-                        if payload.ok {
-                            successMessage = payload.message ?? "Comando de abertura enviado."
-                        } else {
-                            errorMessage = payload.error ?? "Resposta inesperada"
-                        }
-                    case .failure(let error):
-                        errorMessage = error.localizedDescription
-                    }
+                    errorMessage = error.localizedDescription
                 }
+            case .success(let request):
+                session.dataTask(with: request) { data, response, error in
+                    decodeResponse(DoorAPIResponse.self, data: data, response: response, error: error) { result in
+                        DispatchQueue.main.async {
+                            loading = false
+                            switch result {
+                            case .success(let payload):
+                                if payload.ok {
+                                    successMessage = payload.message ?? "Comando de abertura enviado."
+                                } else {
+                                    errorMessage = payload.error ?? "Resposta inesperada"
+                                }
+                            case .failure(let error):
+                                errorMessage = error.localizedDescription
+                            }
+                        }
+                    }
+                }.resume()
             }
-        }.resume()
+        }
     }
 
     private func refreshMeetingStatus() {
-        guard let request = makeRequest(path: "/api/meeting/status", method: "GET") else { return }
         loading = true
         errorMessage = nil
 
-        session.dataTask(with: request) { data, response, error in
-            decodeResponse(MeetingStatusResponse.self, data: data, response: response, error: error) { result in
+        makeRequest(path: "/api/meeting/status", method: "GET") { requestResult in
+            switch requestResult {
+            case .failure(let error):
                 DispatchQueue.main.async {
                     loading = false
-                    switch result {
-                    case .success(let status):
-                        if status.ok {
-                            meetingStatus = status
-                        } else {
-                            errorMessage = status.error ?? "Resposta inesperada"
-                        }
-                    case .failure(let error):
-                        errorMessage = error.localizedDescription
-                    }
+                    errorMessage = error.localizedDescription
                 }
+            case .success(let request):
+                session.dataTask(with: request) { data, response, error in
+                    decodeResponse(MeetingStatusResponse.self, data: data, response: response, error: error) { result in
+                        DispatchQueue.main.async {
+                            loading = false
+                            switch result {
+                            case .success(let status):
+                                if status.ok {
+                                    meetingStatus = status
+                                } else {
+                                    errorMessage = status.error ?? "Resposta inesperada"
+                                }
+                            case .failure(let error):
+                                errorMessage = error.localizedDescription
+                            }
+                        }
+                    }
+                }.resume()
             }
-        }.resume()
+        }
     }
 
     private func scheduleMeeting() {
@@ -302,29 +335,37 @@ struct DoorControlView: View {
                 weekdays: recurrence == "weekly" ? try parseWeekdays() : nil
             )
             let body = try JSONEncoder().encode(payload)
-            guard let request = makeRequest(path: "/api/meeting/schedule", method: "POST", body: body) else { return }
-
             loading = true
             errorMessage = nil
             successMessage = nil
-            session.dataTask(with: request) { data, response, error in
-                decodeResponse(MeetingScheduleResponse.self, data: data, response: response, error: error) { result in
+            makeRequest(path: "/api/meeting/schedule", method: "POST", body: body) { requestResult in
+                switch requestResult {
+                case .failure(let error):
                     DispatchQueue.main.async {
                         loading = false
-                        switch result {
-                        case .success(let response):
-                            if response.ok {
-                                successMessage = "Reunião agendada. ID \(response.id ?? 0)."
-                                refreshMeetingStatus()
-                            } else {
-                                errorMessage = response.error ?? "Resposta inesperada"
-                            }
-                        case .failure(let error):
-                            errorMessage = error.localizedDescription
-                        }
+                        errorMessage = error.localizedDescription
                     }
+                case .success(let request):
+                    session.dataTask(with: request) { data, response, error in
+                        decodeResponse(MeetingScheduleResponse.self, data: data, response: response, error: error) { result in
+                            DispatchQueue.main.async {
+                                loading = false
+                                switch result {
+                                case .success(let response):
+                                    if response.ok {
+                                        successMessage = "Reunião agendada. ID \(response.id ?? 0)."
+                                        refreshMeetingStatus()
+                                    } else {
+                                        errorMessage = response.error ?? "Resposta inesperada"
+                                    }
+                                case .failure(let error):
+                                    errorMessage = error.localizedDescription
+                                }
+                            }
+                        }
+                    }.resume()
                 }
-            }.resume()
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -333,41 +374,48 @@ struct DoorControlView: View {
     private func cancelMeeting() {
         do {
             let trimmedId = cancelId.trimmingCharacters(in: .whitespacesAndNewlines)
-            let request: URLRequest?
+            let body: Data?
 
             if trimmedId.isEmpty {
-                request = makeRequest(path: "/api/meeting/cancel", method: "POST")
+                body = nil
             } else if let id = Int64(trimmedId), id > 0 {
-                let body = try JSONEncoder().encode(MeetingCancelPayload(id: id))
-                request = makeRequest(path: "/api/meeting/cancel", method: "POST", body: body)
+                body = try JSONEncoder().encode(MeetingCancelPayload(id: id))
             } else {
                 throw AppRamoDoorError.message("ID de cancelamento inválido.")
             }
 
-            guard let request = request else { return }
-
             loading = true
             errorMessage = nil
             successMessage = nil
-            session.dataTask(with: request) { data, response, error in
-                decodeResponse(MeetingCancelResponse.self, data: data, response: response, error: error) { result in
+            makeRequest(path: "/api/meeting/cancel", method: "POST", body: body) { requestResult in
+                switch requestResult {
+                case .failure(let error):
                     DispatchQueue.main.async {
                         loading = false
-                        switch result {
-                        case .success(let response):
-                            if response.ok {
-                                successMessage = "\(response.canceled_count ?? 0) agendamento(s) cancelado(s)."
-                                cancelId = ""
-                                refreshMeetingStatus()
-                            } else {
-                                errorMessage = response.error ?? "Resposta inesperada"
-                            }
-                        case .failure(let error):
-                            errorMessage = error.localizedDescription
-                        }
+                        errorMessage = error.localizedDescription
                     }
+                case .success(let request):
+                    session.dataTask(with: request) { data, response, error in
+                        decodeResponse(MeetingCancelResponse.self, data: data, response: response, error: error) { result in
+                            DispatchQueue.main.async {
+                                loading = false
+                                switch result {
+                                case .success(let response):
+                                    if response.ok {
+                                        successMessage = "\(response.canceled_count ?? 0) agendamento(s) cancelado(s)."
+                                        cancelId = ""
+                                        refreshMeetingStatus()
+                                    } else {
+                                        errorMessage = response.error ?? "Resposta inesperada"
+                                    }
+                                case .failure(let error):
+                                    errorMessage = error.localizedDescription
+                                }
+                            }
+                        }
+                    }.resume()
                 }
-            }.resume()
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
