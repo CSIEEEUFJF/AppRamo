@@ -1,11 +1,8 @@
 # AppRamo
 
-Monorepo inicial do aplicativo do Ramo Estudantil IEEE UFJF, com bases separadas para Android e iOS.
+Repositório inicial do aplicativo do Ramo Estudantil IEEE UFJF, com bases separadas para Android e iOS.
 
-Este repositório foi estruturado a partir dos projetos de referência:
-
-- Android: [CSIEEEUFJF/AppRamoIEEEUFJF_Android](https://github.com/CSIEEEUFJF/AppRamoIEEEUFJF_Android), commit `d811cfb65efa6b36f514c1d1327c2b6c726e8ba2`
-- iOS: [CSIEEEUFJF/AppRamoIEEEUFJF_iOS](https://github.com/CSIEEEUFJF/AppRamoIEEEUFJF_iOS), commit `dbb666674a292c2e1a7da0a8f19a52b284c2bd0f`
+Este repositório foi estruturado a partir dos projetos de referência construídos no final de 2025.
 
 ## Estrutura
 
